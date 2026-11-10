@@ -151,7 +151,7 @@ func detectRPCBusinessError(action string, raw rpcRawResponse) error {
 		return &RPCError{
 			StatusCode: raw.Status,
 			Code:       code,
-			Message:    firstNonEmpty(env.Message, "阿里云接口返回 Success=false"),
+			Message:    firstNonEmpty(env.Message, "Alibaba Cloud API returned Success=false"),
 			RequestID:  requestID,
 		}
 	}
@@ -161,7 +161,7 @@ func detectRPCBusinessError(action string, raw rpcRawResponse) error {
 	return &RPCError{
 		StatusCode: raw.Status,
 		Code:       code,
-		Message:    firstNonEmpty(env.Message, fmt.Sprintf("aliyun rpc %s: 业务错误", action)),
+		Message:    firstNonEmpty(env.Message, fmt.Sprintf("aliyun rpc %s: business error", action)),
 		RequestID:  requestID,
 	}
 }

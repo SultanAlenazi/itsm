@@ -6235,6 +6235,35 @@ const docTemplate = `{
                 }
             }
         },
+        "/api/v1/cmdb/export/{task_id}/download": {
+            "get": {
+                "description": "按任务ID下载导出文件；校验租户、操作人归属与 expires_at",
+                "produces": [
+                    "application/octet-stream"
+                ],
+                "tags": [
+                    "CMDB"
+                ],
+                "summary": "下载CMDB导出文件",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "任务ID",
+                        "name": "task_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "file"
+                        }
+                    }
+                }
+            }
+        },
         "/api/v1/cmdb/import": {
             "get": {
                 "description": "查询历史导入任务列表",
@@ -7328,7 +7357,7 @@ const docTemplate = `{
         },
         "/api/v1/dashboard/sla-data": {
             "get": {
-                "description": "获取各服务的SLA达成情况",
+                "description": "获取租户近30天的SLA合规快照。响应是**单个对象**（complianceRate /\nresponseTimeCompliance / resolutionTimeCompliance / atRiskTickets /\nbreachedTickets / totalTickets / compliantTickets），不是按服务拆分的数组——\n早期文档写成 {array} SLAData，前端据此定义 SLAData[] 并用 Array.isArray 过滤，\n于是对象被当成\"没有数据\"，SLA 面板长期显示\"暂无数据\"。",
                 "consumes": [
                     "application/json"
                 ],
@@ -7343,10 +7372,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/handlers.SLAData"
-                            }
+                            "$ref": "#/definitions/service.SLAComplianceData"
                         }
                     },
                     "500": {
@@ -16620,7 +16646,13 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "criticality": {
-                    "type": "string"
+                    "type": "string",
+                    "enum": [
+                        "low",
+                        "medium",
+                        "high",
+                        "critical"
+                    ]
                 },
                 "description": {
                     "type": "string"
@@ -16671,7 +16703,14 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "status": {
-                    "type": "string"
+                    "type": "string",
+                    "enum": [
+                        "active",
+                        "inactive",
+                        "maintenance",
+                        "retired",
+                        "decommissioned"
+                    ]
                 },
                 "tenantId": {
                     "type": "integer"
@@ -16845,8 +16884,13 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "impactScope": {
-                    "description": "影响范围: low, medium, high",
-                    "type": "string"
+                    "description": "影响范围",
+                    "type": "string",
+                    "enum": [
+                        "low",
+                        "medium",
+                        "high"
+                    ]
                 },
                 "implementationPlan": {
                     "description": "实施计划",
@@ -16865,8 +16909,14 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "priority": {
-                    "description": "优先级: low, medium, high, critical",
-                    "type": "string"
+                    "description": "优先级",
+                    "type": "string",
+                    "enum": [
+                        "low",
+                        "medium",
+                        "high",
+                        "critical"
+                    ]
                 },
                 "relatedTickets": {
                     "description": "相关工单编号",
@@ -16876,8 +16926,13 @@ const docTemplate = `{
                     }
                 },
                 "riskLevel": {
-                    "description": "风险等级: low, medium, high",
-                    "type": "string"
+                    "description": "风险等级",
+                    "type": "string",
+                    "enum": [
+                        "low",
+                        "medium",
+                        "high"
+                    ]
                 },
                 "rollbackPlan": {
                     "description": "回滚计划",
@@ -16888,8 +16943,13 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "type": {
-                    "description": "变更类型: normal, standard, emergency",
-                    "type": "string"
+                    "description": "变更类型",
+                    "type": "string",
+                    "enum": [
+                        "normal",
+                        "standard",
+                        "emergency"
+                    ]
                 }
             }
         },
@@ -17230,7 +17290,13 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "priority": {
-                    "type": "string"
+                    "type": "string",
+                    "enum": [
+                        "low",
+                        "medium",
+                        "high",
+                        "critical"
+                    ]
                 },
                 "rootCause": {
                     "type": "string"
@@ -17495,12 +17561,16 @@ const docTemplate = `{
                     "description": "下载链接过期时间",
                     "type": "string"
                 },
+                "exportLimit": {
+                    "description": "单次导出上限；用于与页面 COUNT 对账",
+                    "type": "integer"
+                },
                 "fileSize": {
                     "description": "文件大小（字节）",
                     "type": "integer"
                 },
                 "fileUrl": {
-                    "description": "导出文件下载地址",
+                    "description": "下载端点 URL（completed 后才有值；绝不回传服务器绝对路径）",
                     "type": "string"
                 },
                 "status": {
@@ -17512,8 +17582,12 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "totalCount": {
-                    "description": "导出的CI数量",
+                    "description": "实际写入文件的 CI 数量",
                     "type": "integer"
+                },
+                "truncated": {
+                    "description": "命中上限：文件可能未包含全部符合条件的数据",
+                    "type": "boolean"
                 }
             }
         },
@@ -18298,6 +18372,10 @@ const docTemplate = `{
                 },
                 "id": {
                     "type": "integer"
+                },
+                "isPublished": {
+                    "description": "IsPublished 与 Status 同源，但显式透出布尔值，避免 API 消费者靠字符串\n反推可见性（历史响应里该字段恒为 null）。",
+                    "type": "boolean"
                 },
                 "lastReviewedAt": {
                     "type": "string"
@@ -19922,7 +20000,13 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "criticality": {
-                    "type": "string"
+                    "type": "string",
+                    "enum": [
+                        "low",
+                        "medium",
+                        "high",
+                        "critical"
+                    ]
                 },
                 "description": {
                     "type": "string"
@@ -19965,7 +20049,14 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "status": {
-                    "type": "string"
+                    "type": "string",
+                    "enum": [
+                        "active",
+                        "inactive",
+                        "maintenance",
+                        "retired",
+                        "decommissioned"
+                    ]
                 },
                 "vendor": {
                     "type": "string"
@@ -20098,6 +20189,11 @@ const docTemplate = `{
                 },
                 "impactScope": {
                     "description": "影响范围",
+                    "enum": [
+                        "low",
+                        "medium",
+                        "high"
+                    ],
                     "allOf": [
                         {
                             "$ref": "#/definitions/dto.ChangeImpact"
@@ -20122,6 +20218,12 @@ const docTemplate = `{
                 },
                 "priority": {
                     "description": "优先级",
+                    "enum": [
+                        "low",
+                        "medium",
+                        "high",
+                        "critical"
+                    ],
                     "allOf": [
                         {
                             "$ref": "#/definitions/dto.ChangePriority"
@@ -20137,6 +20239,11 @@ const docTemplate = `{
                 },
                 "riskLevel": {
                     "description": "风险等级",
+                    "enum": [
+                        "low",
+                        "medium",
+                        "high"
+                    ],
                     "allOf": [
                         {
                             "$ref": "#/definitions/dto.ChangeRisk"
@@ -20153,6 +20260,11 @@ const docTemplate = `{
                 },
                 "type": {
                     "description": "变更类型",
+                    "enum": [
+                        "normal",
+                        "standard",
+                        "emergency"
+                    ],
                     "allOf": [
                         {
                             "$ref": "#/definitions/dto.ChangeType"
@@ -20329,7 +20441,13 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "priority": {
-                    "type": "string"
+                    "type": "string",
+                    "enum": [
+                        "low",
+                        "medium",
+                        "high",
+                        "critical"
+                    ]
                 },
                 "rootCause": {
                     "type": "string"
@@ -20756,20 +20874,6 @@ const docTemplate = `{
                 }
             }
         },
-        "handlers.SLAData": {
-            "type": "object",
-            "properties": {
-                "actual": {
-                    "type": "number"
-                },
-                "service": {
-                    "type": "string"
-                },
-                "target": {
-                    "type": "number"
-                }
-            }
-        },
         "handlers.SatisfactionData": {
             "type": "object",
             "properties": {
@@ -21125,6 +21229,14 @@ const docTemplate = `{
         "service.ServiceQualityReport": {
             "type": "object",
             "properties": {
+                "changeStats": {
+                    "description": "change 域未装配时缺省",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/dto.ChangeStatsResponse"
+                        }
+                    ]
+                },
                 "generatedAt": {
                     "type": "string"
                 },
@@ -21148,6 +21260,14 @@ const docTemplate = `{
                     "additionalProperties": {
                         "type": "string"
                     }
+                },
+                "problemStats": {
+                    "description": "problem 域未装配时缺省",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/dto.ProblemStatsResponse"
+                        }
+                    ]
                 },
                 "satisfaction": {
                     "type": "array",

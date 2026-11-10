@@ -97,7 +97,7 @@ func (s *SLAForecastSkill) Execute(ctx context.Context, input *ForecastInput) (*
 	}
 	if len(tickets) > maxReportTickets {
 		return nil, common.NewBadRequestError(
-			fmt.Sprintf("统计范围内工单数超过 %d 条，请缩小时间范围", maxReportTickets), nil)
+			fmt.Sprintf("The reporting scope exceeds %d tickets; narrow the time range", maxReportTickets), nil)
 	}
 
 	// 2. 构建时间序列数据

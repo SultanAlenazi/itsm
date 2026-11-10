@@ -57,7 +57,7 @@ func (h *Handler) requireStore(ctx *gin.Context) bool {
 		if h.logger != nil {
 			h.logger.Errorw("connector persistent store is not configured; refusing write to avoid losing config on restart")
 		}
-		common.Fail(ctx, common.InternalErrorCode, "连接器配置持久化未就绪，拒绝保存")
+		common.Fail(ctx, common.InternalErrorCode, "Connector configuration persistence is not ready, saving refused")
 		return false
 	}
 	return true
@@ -127,7 +127,7 @@ func (h *Handler) ListConfigs(ctx *gin.Context) {
 func (h *Handler) Provision(ctx *gin.Context) {
 	var req dto.ProvisionConnectorRequest
 	if err := ctx.ShouldBindJSON(&req); err != nil {
-		common.ParamErrorWithErr(ctx, err, "请求参数错误")
+		common.ParamErrorWithErr(ctx, err, "Wrong request parameters")
 		return
 	}
 	tenantID := ctx.GetInt("tenant_id")
@@ -152,7 +152,7 @@ func (h *Handler) Provision(ctx *gin.Context) {
 	if callbackInstanceID == "" {
 		buf := make([]byte, 24)
 		if _, err := rand.Read(buf); err != nil {
-			common.Fail(ctx, common.InternalErrorCode, "无法生成回调实例标识")
+			common.Fail(ctx, common.InternalErrorCode, "Unable to generate callback instance ID")
 			return
 		}
 		callbackInstanceID = hex.EncodeToString(buf)
@@ -198,7 +198,7 @@ func (h *Handler) Provision(ctx *gin.Context) {
 		}
 	}
 	if err := h.manager.Provision(ctx.Request.Context(), cfg); err != nil {
-		common.RespondError(ctx, err, "操作失败")
+		common.RespondError(ctx, err, "Operation failed")
 		return
 	}
 	if err := h.store.Save(ctx.Request.Context(), cfg); err != nil {
@@ -209,7 +209,7 @@ func (h *Handler) Provision(ctx *gin.Context) {
 					"connector", req.Name, "tenant_id", tenantID, "error", restoreErr)
 			}
 		}
-		common.RespondError(ctx, err, "操作失败：配置未能持久化，已恢复原实例")
+		common.RespondError(ctx, err, "Operation failed: Configuration could not be persisted")
 		return
 	}
 	common.Success(ctx, maskConfig(cfg, h.manager.HealthCheckTenant(ctx.Request.Context(), tenantID)))
@@ -233,7 +233,7 @@ func (h *Handler) Revoke(ctx *gin.Context) {
 	}
 	h.manager.Revoke(connector.Config{TenantID: tenantID, Name: name, Provider: provider})
 	if err := h.store.Delete(ctx.Request.Context(), tenantID, name, provider); err != nil {
-		common.RespondError(ctx, err, "操作失败")
+		common.RespondError(ctx, err, "Operation failed")
 		return
 	}
 	common.Success(ctx, gin.H{"name": name, "revoked": true})
@@ -244,7 +244,7 @@ func (h *Handler) Send(ctx *gin.Context) {
 	name := ctx.Param("name")
 	var req dto.SendConnectorMessageRequest
 	if err := ctx.ShouldBindJSON(&req); err != nil {
-		common.ParamErrorWithErr(ctx, err, "请求参数错误")
+		common.ParamErrorWithErr(ctx, err, "Wrong request parameters")
 		return
 	}
 	tenantID := ctx.GetInt("tenant_id")
@@ -261,7 +261,7 @@ func (h *Handler) Send(ctx *gin.Context) {
 		msg.Card = convertCard(req.Card)
 	}
 	if err := h.manager.Send(ctx.Request.Context(), tenantID, name, msg); err != nil {
-		common.RespondError(ctx, err, "操作失败")
+		common.RespondError(ctx, err, "Operation failed")
 		return
 	}
 	common.Success(ctx, gin.H{"name": name, "channel": req.Channel, "sent": true})
@@ -286,10 +286,10 @@ func (h *Handler) Test(ctx *gin.Context) {
 	if err := h.manager.Send(ctx.Request.Context(), tenantID, name, &connector.Message{
 		Channel: channel,
 		Type:    "text",
-		Title:   "ITSM 连接器测试",
-		Content: "这是一条来自 ITSM 的测试消息。\n时间: " + time.Now().Format(time.RFC3339),
+		Title:   "ITSM Connector Test",
+		Content: "This is a test message from ITSM.\nTime: " + time.Now().Format(time.RFC3339),
 	}); err != nil {
-		common.RespondError(ctx, err, "操作失败")
+		common.RespondError(ctx, err, "Operation failed")
 		return
 	}
 	common.Success(ctx, gin.H{"name": name, "channel": channel, "sent": true})
@@ -308,7 +308,7 @@ func (h *Handler) Test(ctx *gin.Context) {
 func (h *Handler) Health(ctx *gin.Context) {
 	tenantID := ctx.GetInt("tenant_id")
 	if tenantID <= 0 {
-		common.Fail(ctx, common.AuthFailedCode, "租户信息缺失")
+		common.Fail(ctx, common.AuthFailedCode, "Tenant information is missing")
 		return
 	}
 	res := h.manager.HealthCheckTenant(ctx.Request.Context(), tenantID)
@@ -406,11 +406,11 @@ func (h *Handler) RotateSecret(ctx *gin.Context) {
 	tenantID := ctx.GetInt("tenant_id")
 	actorID := ctx.GetInt("user_id")
 	if tenantID <= 0 {
-		common.Fail(ctx, common.AuthFailedCode, "租户信息缺失")
+		common.Fail(ctx, common.AuthFailedCode, "Tenant information is missing")
 		return
 	}
 	if name == "" {
-		common.ParamError(ctx, "缺少连接器名称")
+		common.ParamError(ctx, "Missing connector name")
 		return
 	}
 
@@ -418,11 +418,11 @@ func (h *Handler) RotateSecret(ctx *gin.Context) {
 		NewCredentials map[string]string `json:"newCredentials"`
 	}
 	if err := ctx.ShouldBindJSON(&req); err != nil {
-		common.ParamErrorWithErr(ctx, err, "请求参数错误")
+		common.ParamErrorWithErr(ctx, err, "Wrong request parameters")
 		return
 	}
 	if len(req.NewCredentials) == 0 {
-		common.Fail(ctx, common.ParamErrorCode, "newCredentials 不能为空：至少要提交一个凭据字段")
+		common.Fail(ctx, common.ParamErrorCode, "newCredentials cannot be empty: at least one credential field must be submitted")
 		return
 	}
 	if !h.requireStore(ctx) {
@@ -440,7 +440,7 @@ func (h *Handler) RotateSecret(ctx *gin.Context) {
 		}
 	}
 	if !found {
-		common.NotFound(ctx, "连接器实例不存在："+name)
+		common.NotFound(ctx, "Connector instance does not exist:"+name)
 		return
 	}
 
@@ -457,7 +457,7 @@ func (h *Handler) RotateSecret(ctx *gin.Context) {
 	if err := h.manager.Provision(ctx.Request.Context(), rotated); err != nil {
 		h.logger.Errorw("connector rotate_secret init failed", "connector", name, "tenant_id", tenantID,
 			"error", redactCredentialValues(err.Error(), req.NewCredentials))
-		common.ParamError(ctx, "新凭据无法初始化，已保留原凭据")
+		common.ParamError(ctx, "New credentials cannot be initialized, original credentials have been retained")
 		return
 	}
 	if err := h.store.Save(ctx.Request.Context(), rotated); err != nil {
@@ -466,7 +466,7 @@ func (h *Handler) RotateSecret(ctx *gin.Context) {
 			h.logger.Errorw("connector rotate_secret rollback failed; connector runtime may hold unpersisted credentials",
 				"connector", name, "tenant_id", tenantID, "error", restoreErr)
 		}
-		common.RespondError(ctx, err, "轮换失败：凭据未能持久化，已恢复原配置")
+		common.RespondError(ctx, err, "Rotation failed: Credentials failed to persist, original configuration has been restored")
 		return
 	}
 
@@ -500,7 +500,7 @@ func (h *Handler) RotateSecret(ctx *gin.Context) {
 		"provider":  rotated.Provider,
 		"rotated":   true,
 		"rotatedAt": rotatedAt,
-		"note":      "旧凭据已立即失效；如需回退，用旧凭据再调一次 POST /connectors/configs",
+		"note":      "The previous credentials are immediately invalidated. To roll back, submit the previous credentials again through POST /connectors/configs",
 	})
 }
 
@@ -543,7 +543,7 @@ func (h *Handler) FeishuCallback(ctx *gin.Context) {
 	tenantID := ctx.GetInt("tenant_id")
 	if tenantID <= 0 {
 		h.logger.Warnw("Connector FeishuCallback: tenant_id missing in context", "remote_ip", ctx.ClientIP())
-		common.Fail(ctx, common.AuthFailedCode, "租户信息缺失")
+		common.Fail(ctx, common.AuthFailedCode, "Tenant information is missing")
 		return
 	}
 	conn, ok := h.manager.Get(tenantID, "feishu")

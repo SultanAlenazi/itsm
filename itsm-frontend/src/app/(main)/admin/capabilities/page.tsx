@@ -47,15 +47,15 @@ const MATURITY_META: Record<
   { label: string; color: string }
 > = {
   ga: { label: 'GA', color: 'green' },
-  pilot: { label: '预览', color: 'gold' },
-  disabled: { label: '未包含', color: 'default' },
+  pilot: { label: 'Preview', color: 'gold' },
+  disabled: { label: 'Not included', color: 'default' },
 };
 
 const FILTER_OPTIONS: { label: string; value: MaturityFilter }[] = [
-  { label: '全部', value: 'all' },
+  { label: 'All', value: 'all' },
   { label: 'GA', value: 'ga' },
-  { label: '预览', value: 'pilot' },
-  { label: '未就绪', value: 'unready' },
+  { label: 'Preview', value: 'pilot' },
+  { label: 'Not Ready', value: 'unready' },
 ];
 
 /** 部署就绪 + 探测健康才算「此刻可用」。探测缺失（无信号）不算失败。 */
@@ -67,10 +67,10 @@ function isUnready(item: ProductCapabilityState): boolean {
 /**
  * 表格里的预览态摘要。三件事必须同时可核对，且不能把千字散文平铺进单元格：
  *   1. degradedReason —— 此刻为什么不可用（排障信号，会变）；
- *   2. 剩余阻断       —— 为什么它还不是 GA（发布决策）；
- *   3. 晋升条件       —— 还差哪块可验证证据，读者要能据此推进。
- * 完整原文不丢，收进详情面板；解析不出晋升条件时如实标「契约不完整」，
- * 不用「暂无数据」把缺契约伪装成正常状态。
+ *   2. Remaining blockers       —— 为什么它还不是 GA（发布决策）；
+ *   3. Promotion criteria       —— 还差哪块可验证证据，读者要能据此推进。
+ * 完整原文不丢，收进详情面板；解析不出Promotion criteria时如实标「契约不完整」，
+ * 不用「No data」把缺契约伪装成正常状态。
  */
 function PilotReasonCell({
   item,
@@ -86,7 +86,7 @@ function PilotReasonCell({
       {item.degradedReason && <Text type='danger'>{item.degradedReason}</Text>}
       {parts && !parts.structured && (
         <>
-          <Text type='warning'>未声明晋升条件（契约不完整）</Text>
+          <Text type='warning'>Promotion criteria not declared (incomplete contract)</Text>
           <Text type='secondary' ellipsis={{ tooltip: false }}>
             {parts.full}
           </Text>
@@ -95,13 +95,13 @@ function PilotReasonCell({
       {parts?.structured && (
         <>
           <Space size={4} align='start'>
-            <Tag color='gold'>剩余阻断</Tag>
+            <Tag color='gold'>Remaining blockers</Tag>
             <Text type='secondary' ellipsis={{ tooltip: false }}>
               {parts.blockers}
             </Text>
           </Space>
           <Space size={4} align='start'>
-            <Tag color='blue'>晋升条件</Tag>
+            <Tag color='blue'>Promotion criteria</Tag>
             <Text ellipsis={{ tooltip: false }}>{parts.criteria}</Text>
           </Space>
           <Button
@@ -110,7 +110,7 @@ function PilotReasonCell({
             style={{ padding: 0, height: 'auto' }}
             onClick={() => onOpen(item.key)}
           >
-            查看完整理由
+            View full rationale
           </Button>
         </>
       )}
@@ -118,36 +118,36 @@ function PilotReasonCell({
   );
 }
 
-/** 详情面板按三段回看接口原文，避免「切分后看不到依据」。 */
+/** 详情面板按三段回看Original API response，避免「切分后看不到依据」。 */
 function PilotReasonDetail({ item }: { item: ProductCapabilityState }) {
   const parts = splitPilotReason(item.pilotReason);
-  if (!parts) return <Text type='secondary'>该条目未下发预览态理由</Text>;
+  if (!parts) return <Text type='secondary'>No preview rationale was returned for this capability</Text>;
   return (
     <Space orientation='vertical' size={12} style={{ width: '100%' }}>
       <Text type='secondary'>
-        对账基线 {item.acceptanceVersion || '未声明'} · 成熟度：预览（Pilot）
-        {item.degradedReason ? ` · 此刻不可用：${item.degradedReason}` : ''}
+        Acceptance baseline {item.acceptanceVersion || 'Not declared'} · Maturity: Preview (Pilot)
+        {item.degradedReason ? ` · Currently unavailable: ${item.degradedReason}` : ''}
       </Text>
       <div>
-        <Text strong>已闭环进展</Text>
+        <Text strong>Completed progress</Text>
         <Paragraph style={{ marginTop: 4, marginBottom: 0 }}>
-          {parts.progress || '（理由未区分进展与阻断，见下方剩余阻断）'}
+          {parts.progress || '(The rationale does not separate progress from blockers; see remaining blockers below)'}
         </Paragraph>
       </div>
       <div>
         <Text strong type='danger'>
-          剩余阻断
+          Remaining blockers
         </Text>
         <Paragraph style={{ marginTop: 4, marginBottom: 0 }}>{parts.blockers}</Paragraph>
       </div>
       <div>
-        <Text strong>晋升条件</Text>
+        <Text strong>Promotion criteria</Text>
         <Paragraph style={{ marginTop: 4, marginBottom: 0 }}>
-          {parts.criteria || '未声明（契约不完整）'}
+          {parts.criteria || 'Not declared (incomplete contract)'}
         </Paragraph>
       </div>
       <div>
-        <Text type='secondary'>接口原文</Text>
+        <Text type='secondary'>Original API response</Text>
         <Paragraph style={{ marginTop: 4, marginBottom: 0 }}>{parts.full}</Paragraph>
       </div>
     </Space>
@@ -159,7 +159,7 @@ export default function CapabilitiesAdminPage() {
   const [items, setItems] = useState<ProductCapabilityState[]>([]);
   const [acceptanceVersion, setAcceptanceVersion] = useState('');
   // 列表初值必须为 true：mount 必定发起首次拉取，初值 false 会让首帧先渲染
-  // 「能力总数 0」的假统计卡与空表格，再被真实数据覆盖。
+  // 「Total capabilities 0」的假统计卡与空表格，再被真实数据覆盖。
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<MaturityFilter>('all');
   const [keyword, setKeyword] = useState('');
@@ -172,7 +172,7 @@ export default function CapabilitiesAdminPage() {
       setItems(data.items ?? []);
       setAcceptanceVersion(data.acceptanceVersion ?? '');
     } catch (error) {
-      message.error(error instanceof Error ? error.message : '加载能力矩阵失败');
+      message.error(error instanceof Error ? error.message : 'Failed to load capability matrix');
       setItems([]);
       setAcceptanceVersion('');
     } finally {
@@ -189,7 +189,7 @@ export default function CapabilitiesAdminPage() {
     const pilot = items.filter(item => item.maturity === 'pilot').length;
     const disabled = items.filter(item => item.maturity === 'disabled').length;
     const unready = items.filter(isUnready).length;
-    // 有多少预览条目真的写出了晋升条件：分母是预览总数，缺口必须可见，
+    // 有多少预览条目真的写出了Promotion criteria：分母是预览总数，缺口必须可见，
     // 否则「预览态可核对」只是一句注释。
     const criteriaDeclared = items.filter(
       item => item.maturity === 'pilot' && splitPilotReason(item.pilotReason)?.structured === true
@@ -220,7 +220,7 @@ export default function CapabilitiesAdminPage() {
 
   const columns: ColumnsType<ProductCapabilityState> = [
     {
-      title: '能力',
+      title: 'Capabilities',
       dataIndex: 'key',
       width: 260,
       render: (key: string, item) => (
@@ -228,14 +228,15 @@ export default function CapabilitiesAdminPage() {
           <Text strong>{key}</Text>
           {item.dependencies.length > 0 && (
             <Text type='secondary' style={{ fontSize: 12 }}>
-              依赖：{item.dependencies.join(' / ')}
+
+              Dependencies:{item.dependencies.join(' / ')}
             </Text>
           )}
         </Space>
       ),
     },
     {
-      title: '成熟度',
+      title: 'Maturity',
       dataIndex: 'maturity',
       width: 100,
       render: (maturity: ProductCapabilityState['maturity']) => (
@@ -243,32 +244,32 @@ export default function CapabilitiesAdminPage() {
       ),
     },
     {
-      title: '部署就绪',
+      title: 'Ready to deploy',
       dataIndex: 'deploymentReady',
       width: 110,
       render: (ready: boolean) =>
-        ready ? <Tag color='green'>就绪</Tag> : <Tag color='orange'>未就绪</Tag>,
+        ready ? <Tag color='green'>Ready</Tag> : <Tag color='orange'>Not Ready</Tag>,
     },
     {
-      title: '探测',
+      title: 'Detection',
       dataIndex: 'health',
       width: 150,
       render: (_: unknown, item) => {
         if (!item.health) {
           // 没有探测维度不等于健康，也不等于故障：如实显示「无信号」。
-          return <Text type='secondary'>无信号</Text>;
+          return <Text type='secondary'>No signal</Text>;
         }
         return item.health.ok ? (
-          <Tag color='green'>正常</Tag>
+          <Tag color='green'>OK</Tag>
         ) : (
-          <Tooltip title={item.health.reason || '探测未通过'}>
-            <Tag color='red'>异常</Tag>
+          <Tooltip title={item.health.reason || 'Detection failed'}>
+            <Tag color='red'>Error</Tag>
           </Tooltip>
         );
       },
     },
     {
-      title: '可用动作',
+      title: 'Available actions',
       dataIndex: 'allowedActions',
       width: 140,
       render: (actions: string[]) =>
@@ -283,7 +284,7 @@ export default function CapabilitiesAdminPage() {
         ),
     },
     {
-      title: '说明',
+      title: 'Description',
       key: 'reason',
       render: (_: unknown, item) => <PilotReasonCell item={item} onOpen={setDetailKey} />,
     },
@@ -291,31 +292,32 @@ export default function CapabilitiesAdminPage() {
 
   return (
     <PageContainer
-      header={{ title: '能力矩阵' }}
+      header={{ title: 'Capability Matrix' }}
       extra={
         <Button icon={<RefreshCw size={16} />} onClick={() => void load()} loading={loading}>
-          刷新
+
+          Refresh
         </Button>
       }
     >
       <Space orientation='vertical' size={16} style={{ width: '100%' }}>
-        {/* 统计卡必须门控：还没拉到数据时渲染成「能力总数 0」会被误读成「矩阵为空」 */}
+        {/* 统计卡必须门控：还没拉到数据时渲染成「Total capabilities 0」会被误读成「矩阵为空」 */}
         {!loading && (
           <Row gutter={16}>
             <Col xs={12} md={6}>
               <Card size='small'>
-                <Statistic title='能力总数' value={summary.total} prefix={<ShieldCheck size={16} />} />
+                <Statistic title='Total capabilities' value={summary.total} prefix={<ShieldCheck size={16} />} />
               </Card>
             </Col>
             <Col xs={12} md={6}>
               <Card size='small'>
-                <Statistic title='GA（可承诺）' value={summary.ga} styles={{ content: { color: '#3f8600' } }} />
+                <Statistic title='GA (ready to commit)' value={summary.ga} styles={{ content: { color: '#3f8600' } }} />
               </Card>
             </Col>
             <Col xs={12} md={6}>
               <Card size='small'>
                 <Statistic
-                  title='预览（Pilot）'
+                  title='Preview (Pilot)'
                   value={summary.pilot}
                   styles={{ content: { color: '#d48806' } }}
                   prefix={<FlaskConical size={16} />}
@@ -325,7 +327,7 @@ export default function CapabilitiesAdminPage() {
             <Col xs={12} md={6}>
               <Card size='small'>
                 <Statistic
-                  title='此刻不可用'
+                  title='Currently unavailable'
                   value={summary.unready}
                   styles={{ content: { color: summary.unready > 0 ? '#cf1322' : undefined } }}
                   prefix={summary.unready > 0 ? <AlertTriangle size={16} /> : <Ban size={16} />}
@@ -336,18 +338,19 @@ export default function CapabilitiesAdminPage() {
         )}
 
         <Space wrap size={6}>
-          <Text type='secondary'>契约验收基线</Text>
-          <Tag color={acceptanceVersion ? 'blue' : 'default'}>{acceptanceVersion || '未声明'}</Tag>
-          <Tooltip title='预览能力中写出「晋升条件」的条数 / 预览总数。小于分母说明有条目无法据此推进晋升，需回后端补齐理由。'>
+          <Text type='secondary'>Contract acceptance baseline</Text>
+          <Tag color={acceptanceVersion ? 'blue' : 'default'}>{acceptanceVersion || 'Not declared'}</Tag>
+          <Tooltip title='Preview capabilities with declared promotion criteria / total preview capabilities. A lower count means some entries need complete rationale before promotion can proceed.'>
             <span>
               <Tag color={summary.criteriaDeclared === summary.pilot ? 'green' : 'orange'}>
-                晋升条件 {summary.criteriaDeclared}/{summary.pilot}
+                Promotion criteria {summary.criteriaDeclared}/{summary.pilot}
               </Tag>
             </span>
           </Tooltip>
-          <Tooltip title='能力矩阵最近一次对账日期，不是发布版本。它不得早于最新发布版本；单条能力是否可承诺仍看成熟度、部署就绪与说明。'>
+          <Tooltip title='The capability matrix reconciliation date, not the release version. It must not precede the latest release; capability commitments depend on maturity, deployment readiness, and rationale.'>
             <Text type='secondary' style={{ cursor: 'help' }}>
-              说明
+
+              Description
             </Text>
           </Tooltip>
         </Space>
@@ -356,8 +359,8 @@ export default function CapabilitiesAdminPage() {
           <Alert
             type='warning'
             showIcon
-            title='当前会话没有租户上下文'
-            description='矩阵只反映部署级事实：tenantReady 为 false、allowedActions 为空，不代表能力缺失。'
+            title="There is no tenant context for the current session"
+            description="The matrix only reflects deployment-level facts: tenantReady is false and allowedActions is empty, which does not mean a lack of capabilities."
           />
         )}
 
@@ -365,8 +368,8 @@ export default function CapabilitiesAdminPage() {
           <Alert
             type='error'
             showIcon
-            title={`${summary.unready} 项能力此刻不可用`}
-            description='部署依赖未就绪或探测失败。切到「未就绪」筛选可看到具体原因，修好后刷新本页即可复核。'
+            title={`${summary.unready} Ability is not available at this time`}
+            description="The deployment dependency is not ready or the detection failed. Switch to the &quot;Not Ready&quot; filter to see the specific reasons. After repairing, refresh this page to review."
           />
         )}
 
@@ -379,7 +382,7 @@ export default function CapabilitiesAdminPage() {
           <Input
             allowClear
             prefix={<Search size={14} />}
-            placeholder='按能力键或预览理由搜索，如 connector.feishu'
+            placeholder='Search capability keys or preview rationale, e.g. connector.feishu'
             style={{ width: 280 }}
             value={keyword}
             onChange={event => setKeyword(event.target.value)}
@@ -397,7 +400,7 @@ export default function CapabilitiesAdminPage() {
             emptyText: (
               <Empty
                 description={
-                  items.length === 0 ? '能力矩阵为空，请确认后端 /api/v1/capabilities 可达' : '没有符合筛选条件的能力'
+                  items.length === 0 ? 'The capability matrix is empty, please confirm that the backend /api/v1/capabilities is reachable' : 'No ability matching the filter criteria'
                 }
               />
             ),
@@ -409,7 +412,7 @@ export default function CapabilitiesAdminPage() {
           onCancel={() => setDetailKey(null)}
           footer={null}
           width={760}
-          title={`预览态核对 · ${detailItem?.key ?? ''}`}
+          title={`Preview review · ${detailItem?.key ?? ''}`}
         >
           {detailItem && <PilotReasonDetail item={detailItem} />}
         </Modal>

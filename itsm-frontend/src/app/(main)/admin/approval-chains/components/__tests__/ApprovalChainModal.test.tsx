@@ -39,11 +39,11 @@ describe('ApprovalChainModal 分步校验（D52 回归）', () => {
   it('空名称点「下一步」：停留在步骤 1 并显示字段错误', async () => {
     renderModal();
 
-    fireEvent.click(screen.getByRole('button', { name: '下一步' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Next' }));
 
     // 字段错误可见，且仍停留在第一步
-    await screen.findByText('请输入审批链名称');
-    expect(screen.getByText('基本信息').closest('.ant-steps-item')).toHaveClass(
+    await screen.findByText('Please enter Approval ChainsName');
+    expect(screen.getByText('Basic Info').closest('.ant-steps-item')).toHaveClass(
       'ant-steps-item-process'
     );
     // 步骤 1 容器保持可见
@@ -54,11 +54,11 @@ describe('ApprovalChainModal 分步校验（D52 回归）', () => {
     const onSubmit = jest.fn().mockResolvedValue(undefined);
     renderModal(onSubmit);
 
-    const nameInput = screen.getByPlaceholderText('请输入审批链名称');
+    const nameInput = screen.getByPlaceholderText('Please enter Approval ChainsName');
 
     // 填入合法名称进入第二步
     fireEvent.change(nameInput, { target: { value: '测试审批链' } });
-    fireEvent.click(screen.getByRole('button', { name: '下一步' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Next' }));
     await waitFor(() => {
       expect(getBasicStepContainer().style.display).toBe('none');
     });
@@ -66,29 +66,29 @@ describe('ApprovalChainModal 分步校验（D52 回归）', () => {
     // 名称在隐藏状态下被清空（等价于用户回退改坏数据后直接创建）
     fireEvent.change(nameInput, { target: { value: '' } });
 
-    fireEvent.click(screen.getByRole('button', { name: '添加步骤' }));
-    // antd 对两个汉字的按钮自动插入空格（"创 建"），可访问名需用正则匹配
-    fireEvent.click(screen.getByRole('button', { name: /创\s*建/ }));
+    fireEvent.click(screen.getByRole('button', { name: 'Add Step' }));
+    // Submit after adding a step; invalid hidden basic fields must become visible.
+    fireEvent.click(screen.getByRole('button', { name: 'Create' }));
 
     // 自动跳回第一步 + 可见错误 + 顶部提示，onSubmit 未被调用
-    await screen.findByText('基本信息未通过校验，请检查后重试');
+    await screen.findByText('Basic information is invalid. Please review it and try again.');
     await waitFor(() => {
       expect(getBasicStepContainer().style.display).toBe('block');
     });
-    await screen.findByText('请输入审批链名称');
+    await screen.findByText('Please enter Approval ChainsName');
     expect(onSubmit).not.toHaveBeenCalled();
   });
 
   it('名称合法时「下一步」正常进入步骤配置', async () => {
     renderModal();
 
-    fireEvent.change(screen.getByPlaceholderText('请输入审批链名称'), {
+    fireEvent.change(screen.getByPlaceholderText('Please enter Approval ChainsName'), {
       target: { value: '测试审批链' },
     });
-    fireEvent.click(screen.getByRole('button', { name: '下一步' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Next' }));
 
     await waitFor(() => {
-      expect(screen.getByText('步骤配置').closest('.ant-steps-item')).toHaveClass(
+      expect(screen.getByText('Step configuration').closest('.ant-steps-item')).toHaveClass(
         'ant-steps-item-process'
       );
     });

@@ -23,8 +23,19 @@ export interface PilotReasonParts {
   full: string;
 }
 
-const CRITERIA_MARK = '晋升条件：';
-const BLOCKER_MARKS = ['剩余阻断：', '但'];
+// Legacy markers remain readable for saved reasons from earlier releases.
+const CRITERIA_MARKS = ['Promotion criteria:', '晋升条件：'];
+const BLOCKER_MARKS = ['Remaining blockers:', 'Remaining blocker:', '剩余阻断：'];
+const TRANSITION_MARKS = [' However, ', ' but ', '但'];
+
+const lastMarker = (text: string, markers: string[]) =>
+  markers.reduce(
+    (latest, marker) => {
+      const at = text.lastIndexOf(marker);
+      return at > latest.at ? { at, length: marker.length } : latest;
+    },
+    { at: -1, length: 0 }
+  );
 
 export const splitPilotReason = (reason?: string): PilotReasonParts | null => {
   const full = (reason ?? '').trim();
@@ -32,19 +43,18 @@ export const splitPilotReason = (reason?: string): PilotReasonParts | null => {
 
   // 取最后一次出现：若后端又出现重复段，仍能把完整的晋升条件切出来，
   // 重复内容留在 blockers 里而不吞掉任何原文（后端另有守卫禁止重复）。
-  const criteriaAt = full.lastIndexOf(CRITERIA_MARK);
-  const criteria = criteriaAt >= 0 ? full.slice(criteriaAt + CRITERIA_MARK.length).trim() : '';
+  const criteriaMarker = lastMarker(full, CRITERIA_MARKS);
+  const criteriaAt = criteriaMarker.at;
+  const criteria = criteriaAt >= 0 ? full.slice(criteriaAt + criteriaMarker.length).trim() : '';
   const head = (criteriaAt >= 0 ? full.slice(0, criteriaAt) : full).trim();
 
   let progress = '';
   let blockers = head;
-  for (const mark of BLOCKER_MARKS) {
-    const at = head.lastIndexOf(mark);
-    if (at >= 0) {
-      progress = head.slice(0, at).trim();
-      blockers = head.slice(at + mark.length).trim();
-      break;
-    }
+  let blockerMarker = lastMarker(head, BLOCKER_MARKS);
+  if (blockerMarker.at < 0) blockerMarker = lastMarker(head, TRANSITION_MARKS);
+  if (blockerMarker.at >= 0) {
+    progress = head.slice(0, blockerMarker.at).trim();
+    blockers = head.slice(blockerMarker.at + blockerMarker.length).trim();
   }
 
   // 清理切分留下的尾部句号，但不改写句子内容。

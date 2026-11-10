@@ -138,7 +138,7 @@ func (s *CMDBImportExportService) CreateImportTask(ctx context.Context, req *dto
 
 	tx, err := s.client.Tx(ctx)
 	if err != nil {
-		return nil, fmt.Errorf("创建导入任务事务失败: %w", err)
+		return nil, fmt.Errorf("Failed to create import task transaction: %w", err)
 	}
 	defer tx.Rollback()
 	// Job 和调度命令必须在同一事务提交。
@@ -154,7 +154,7 @@ func (s *CMDBImportExportService) CreateImportTask(ctx context.Context, req *dto
 		Save(ctx)
 	if err != nil {
 		s.logger.Errorw("Failed to create import task", "error", err, "tenant_id", tenantID)
-		return nil, fmt.Errorf("创建导入任务失败: %w", err)
+		return nil, fmt.Errorf("Failed to create import task: %w", err)
 	}
 	if _, err := commandbus.EnqueueTx(ctx, tx, commandbus.EnqueueRequest{
 		TenantID: tenantID, CommandType: commandbus.CommandProcessCMDBImport,
@@ -162,10 +162,10 @@ func (s *CMDBImportExportService) CreateImportTask(ctx context.Context, req *dto
 		IdempotencyKey: fmt.Sprintf("cmdb-import:%s:process", taskID),
 		Payload:        map[string]interface{}{"taskId": taskID}, MaxAttempts: 8,
 	}); err != nil {
-		return nil, fmt.Errorf("创建导入任务调度命令失败: %w", err)
+		return nil, fmt.Errorf("Failed to create import task scheduling command: %w", err)
 	}
 	if err := tx.Commit(); err != nil {
-		return nil, fmt.Errorf("提交导入任务失败: %w", err)
+		return nil, fmt.Errorf("Failed to submit import task: %w", err)
 	}
 
 	return s.convertToImportDTO(task), nil
@@ -181,10 +181,10 @@ func (s *CMDBImportExportService) GetImportTaskStatus(ctx context.Context, taskI
 		First(ctx)
 	if err != nil {
 		if ent.IsNotFound(err) {
-			return nil, fmt.Errorf("导入任务不存在")
+			return nil, fmt.Errorf("Import task does not exist")
 		}
 		s.logger.Errorw("Failed to get import task", "error", err, "task_id", taskID)
-		return nil, fmt.Errorf("获取导入任务失败: %w", err)
+		return nil, fmt.Errorf("Failed to get import task: %w", err)
 	}
 
 	return s.convertToImportDTO(task), nil
@@ -200,7 +200,7 @@ func (s *CMDBImportExportService) ListImportTasks(ctx context.Context, tenantID 
 	total, err := query.Count(ctx)
 	if err != nil {
 		s.logger.Errorw("Failed to count import tasks", "error", err, "tenant_id", tenantID)
-		return nil, fmt.Errorf("统计导入任务失败: %w", err)
+		return nil, fmt.Errorf("Statistics import task failed: %w", err)
 	}
 
 	tasks, err := query.
@@ -210,7 +210,7 @@ func (s *CMDBImportExportService) ListImportTasks(ctx context.Context, tenantID 
 		All(ctx)
 	if err != nil {
 		s.logger.Errorw("Failed to list import tasks", "error", err, "tenant_id", tenantID)
-		return nil, fmt.Errorf("获取导入任务列表失败: %w", err)
+		return nil, fmt.Errorf("Failed to get import task list: %w", err)
 	}
 
 	items := make([]dto.ImportCIResult, len(tasks))
@@ -440,19 +440,19 @@ func (s *CMDBImportExportService) CreateExportTask(ctx context.Context, req *dto
 	filtersJSON, err := json.Marshal(req.Filters)
 	if err != nil {
 		s.logger.Errorw("Failed to marshal export filters", "error", err)
-		return nil, fmt.Errorf("序列化过滤条件失败: %w", err)
+		return nil, fmt.Errorf("Failed to serialize filter: %w", err)
 	}
 
 	var filtersMap map[string]interface{}
 	err = json.Unmarshal(filtersJSON, &filtersMap)
 	if err != nil {
 		s.logger.Errorw("Failed to unmarshal export filters", "error", err)
-		return nil, fmt.Errorf("反序列化过滤条件失败: %w", err)
+		return nil, fmt.Errorf("Failed to deserialize filter: %w", err)
 	}
 
 	tx, err := s.client.Tx(ctx)
 	if err != nil {
-		return nil, fmt.Errorf("创建导出任务事务失败: %w", err)
+		return nil, fmt.Errorf("Failed to create export task transaction: %w", err)
 	}
 	defer tx.Rollback()
 	// Job 和调度命令必须在同一事务提交。
@@ -468,7 +468,7 @@ func (s *CMDBImportExportService) CreateExportTask(ctx context.Context, req *dto
 		Save(ctx)
 	if err != nil {
 		s.logger.Errorw("Failed to create export task", "error", err, "tenant_id", tenantID)
-		return nil, fmt.Errorf("创建导出任务失败: %w", err)
+		return nil, fmt.Errorf("Failed to create export task: %w", err)
 	}
 	if _, err := commandbus.EnqueueTx(ctx, tx, commandbus.EnqueueRequest{
 		TenantID: tenantID, CommandType: commandbus.CommandProcessCMDBExport,
@@ -476,10 +476,10 @@ func (s *CMDBImportExportService) CreateExportTask(ctx context.Context, req *dto
 		IdempotencyKey: fmt.Sprintf("cmdb-export:%s:process", taskID),
 		Payload:        map[string]interface{}{"taskId": taskID}, MaxAttempts: 8,
 	}); err != nil {
-		return nil, fmt.Errorf("创建导出任务调度命令失败: %w", err)
+		return nil, fmt.Errorf("Failed to create export task scheduling command: %w", err)
 	}
 	if err := tx.Commit(); err != nil {
-		return nil, fmt.Errorf("提交导出任务失败: %w", err)
+		return nil, fmt.Errorf("Failed to submit export task: %w", err)
 	}
 
 	return s.convertToExportDTO(task), nil
@@ -495,10 +495,10 @@ func (s *CMDBImportExportService) GetExportTaskStatus(ctx context.Context, taskI
 		First(ctx)
 	if err != nil {
 		if ent.IsNotFound(err) {
-			return nil, fmt.Errorf("导出任务不存在")
+			return nil, fmt.Errorf("Export task does not exist")
 		}
 		s.logger.Errorw("Failed to get export task", "error", err, "task_id", taskID)
-		return nil, fmt.Errorf("获取导出任务失败: %w", err)
+		return nil, fmt.Errorf("Failed to get export task: %w", err)
 	}
 
 	return s.convertToExportDTO(task), nil
@@ -514,7 +514,7 @@ func (s *CMDBImportExportService) ListExportTasks(ctx context.Context, tenantID 
 	total, err := query.Count(ctx)
 	if err != nil {
 		s.logger.Errorw("Failed to count export tasks", "error", err, "tenant_id", tenantID)
-		return nil, fmt.Errorf("统计导出任务失败: %w", err)
+		return nil, fmt.Errorf("Statistics export task failed: %w", err)
 	}
 
 	tasks, err := query.
@@ -524,7 +524,7 @@ func (s *CMDBImportExportService) ListExportTasks(ctx context.Context, tenantID 
 		All(ctx)
 	if err != nil {
 		s.logger.Errorw("Failed to list export tasks", "error", err, "tenant_id", tenantID)
-		return nil, fmt.Errorf("获取导出任务列表失败: %w", err)
+		return nil, fmt.Errorf("Failed to get export task list: %w", err)
 	}
 
 	items := make([]dto.ExportCIResult, len(tasks))
@@ -1169,13 +1169,13 @@ func cmdbExportFilePath(tenantID int, taskID, ext string) (string, error) {
 // 因此下载端点无法被用来读任意服务器文件。
 func resolveCMDBExportFilePath(tenantID int, storedName string) (string, error) {
 	if storedName == "" || storedName != filepath.Base(storedName) || strings.ContainsAny(storedName, `/\`) {
-		return "", common.NewBadRequestError("导出文件名非法", nil)
+		return "", common.NewBadRequestError("Invalid export filename", nil)
 	}
 	if !strings.HasPrefix(storedName, fmt.Sprintf("cmdb-export-t%d-", tenantID)) {
-		return "", common.NewBadRequestError("导出文件不属于当前租户", nil)
+		return "", common.NewBadRequestError("Export file does not belong to the current tenant", nil)
 	}
 	if ext := filepath.Ext(storedName); ext != ".csv" && ext != ".xlsx" {
-		return "", common.NewBadRequestError("导出文件类型非法", nil)
+		return "", common.NewBadRequestError("Invalid export file type", nil)
 	}
 	dir, err := cmdbExportDir(tenantID)
 	if err != nil {
@@ -1453,18 +1453,18 @@ func (s *CMDBImportExportService) ResolveExportDownload(ctx context.Context, tas
 	).Only(ctx)
 	if err != nil {
 		if ent.IsNotFound(err) {
-			return "", "", common.NewNotFoundError("导出任务")
+			return "", "", common.NewNotFoundError("Export task")
 		}
-		return "", "", fmt.Errorf("查询导出任务失败: %w", err)
+		return "", "", fmt.Errorf("Failed to query export task: %w", err)
 	}
 	if task.OperatorID != operatorID {
-		return "", "", common.NewForbiddenError("无权下载其他操作人创建的导出文件")
+		return "", "", common.NewForbiddenError("Cannot download export files created by another operator")
 	}
 	if task.Status != "completed" {
-		return "", "", common.NewConflictError("导出任务", "任务尚未完成")
+		return "", "", common.NewConflictError("Export task", "Task is not completed")
 	}
 	if !task.ExpiresAt.IsZero() && time.Now().After(task.ExpiresAt) {
-		return "", "", common.NewForbiddenError("导出文件已过期，请重新导出")
+		return "", "", common.NewForbiddenError("Export file has expired; export again")
 	}
 	filePath, err := resolveCMDBExportFilePath(tenantID, task.FileURL)
 	if err != nil {
@@ -1472,7 +1472,7 @@ func (s *CMDBImportExportService) ResolveExportDownload(ctx context.Context, tas
 	}
 	info, err := os.Stat(filePath)
 	if err != nil || info.IsDir() {
-		return "", "", common.NewNotFoundError("导出文件")
+		return "", "", common.NewNotFoundError("Export file")
 	}
 	downloadName := fmt.Sprintf("cmdb-export-%s%s", sanitizeCMDBTaskID(taskID), filepath.Ext(filePath))
 	return filePath, downloadName, nil
@@ -1528,7 +1528,7 @@ func safeExcelizeGetRows(filePath, sheetName string) (rows [][]string, err error
 
 	f, err := excelize.OpenFile(filePath)
 	if err != nil {
-		return nil, fmt.Errorf("打开Excel文件失败: %w", err)
+		return nil, fmt.Errorf("Failed to open Excel file: %w", err)
 	}
 	defer f.Close()
 
@@ -1538,7 +1538,7 @@ func safeExcelizeGetRows(filePath, sheetName string) (rows [][]string, err error
 
 	rows, err = f.GetRows(sheetName)
 	if err != nil {
-		return nil, fmt.Errorf("读取Sheet失败: %w", err)
+		return nil, fmt.Errorf("Failed to read Sheet: %w", err)
 	}
 	return rows, nil
 }

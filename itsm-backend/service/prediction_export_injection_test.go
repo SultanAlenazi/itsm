@@ -49,12 +49,12 @@ func TestPredictionCSVExport_NeutralizesUserControlledCells(t *testing.T) {
 	require.Contains(t, text, "'=HYPERLINK", "Model 元数据必须中性化")
 
 	// 原始载荷不得以「裸公式」形态出现（撇号前缀是唯一允许形态）
-	assert.NotContains(t, text, "模型,=HYPERLINK", "公式载荷必须被中性化")
+	assert.NotContains(t, text, "Model,=HYPERLINK", "公式载荷必须被中性化")
 
 	// CSV 结构：含 BOM、表头行、数据行（encoding/csv 转义逗号/换行）
 	require.True(t, strings.HasPrefix(text, "\xEF\xBB\xBF"), "需带 utf-8-sig BOM")
-	require.Contains(t, text, "日期,预测值,下限,上限,置信度")
-	require.Contains(t, text, "预测信息")
+	require.Contains(t, text, "Date,Predicted value,Lower bound,Upper bound,Confidence")
+	require.Contains(t, text, "Prediction information")
 }
 
 func TestPredictionCSVExport_NeutralizesCategoryAndPriority(t *testing.T) {

@@ -94,22 +94,22 @@ describe('云账号弹窗文案（D53 回归）', () => {
       renderPage();
 
       // 打开「新增云账号」
-      fireEvent.click(screen.getByRole('button', { name: /新增云账号/ }));
+      fireEvent.click(screen.getByRole('button', { name: /Add a new cloud account/ }));
 
       // 创建态：标签「凭据引用」+ 创建语义说明；不得出现编辑态标签
-      await screen.findByText('凭据引用');
-      expect(screen.queryByText('更新凭据引用')).toBeNull();
-      await screen.findByText('填写 secret://<tenant>/<name> 引用；留空表示暂不配置凭据。');
+      await screen.findByText('Credential reference');
+      expect(screen.queryByText('Update credential reference')).toBeNull();
+      await screen.findByText('Enter a secret://<tenant>/<name> reference; leave blank to configure credentials later.');
 
       // 关闭创建弹窗（测试环境无 zh-CN locale，Modal 按钮为英文）
       fireEvent.click(screen.getByRole('button', { name: /cancel/i }));
 
       // 打开「编辑云账号」
-      fireEvent.click(screen.getByLabelText('编辑云账号 生产账号'));
+      fireEvent.click(screen.getByLabelText('Edit cloud account 生产账号'));
 
       // 编辑态：标签「更新凭据引用」+ 保留现有凭据说明
-      await screen.findByText('更新凭据引用');
-      await screen.findByText('留空将保留现有凭据；服务端不会返回已保存的凭据内容。');
+      await screen.findByText('Update credential reference');
+      await screen.findByText('Leave it blank to retain existing credentials; the server will not return the contents of the saved credentials.');
     },
     // 整页 + 两个 antd Modal 的渲染与多次全文档 findBy 轮询较重，本用例为长耗时测试。
     60000
@@ -127,9 +127,9 @@ describe('首屏加载态（D55 回归）', () => {
     // 表格必须呈现 antd loading spin
     expect(container.querySelector('.ant-spin')).not.toBeNull();
     // 统计区显示「加载中…」，不得显示「共 0 个账号」
-    expect(screen.getByText('加载中…')).toBeInTheDocument();
-    expect(screen.queryByText(/共 \d+ 个账号/)).toBeNull();
+    expect(screen.getByText('Loading…')).toBeInTheDocument();
+    expect(screen.queryByText(/Total \d+\s+accounts/)).toBeNull();
     // 空态文案不得出现
-    expect(screen.queryByText('暂无数据')).toBeNull();
+    expect(screen.queryByText('No data yet')).toBeNull();
   });
 });

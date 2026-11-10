@@ -552,10 +552,10 @@ func TestAuditLogService_ListAuditLogs_RejectsInvalidTimeWindow(t *testing.T) {
 	cases := []struct {
 		name, from, to, want string
 	}{
-		{"非法 from", "not-a-date", "", "from 时间格式非法"},
-		{"非法 to", "", "not-a-date", "to 时间格式非法"},
-		{"倒挂", "2026-11-01T00:00:00Z", "2026-10-01T00:00:00Z", "to 不得早于 from"},
-		{"超长窗口", "2020-01-01T00:00:00Z", "2026-11-01T00:00:00Z", "查询窗口不得超过"},
+		{"非法 from", "not-a-date", "", "Invalid from timestamp"},
+		{"非法 to", "", "not-a-date", "Invalid to timestamp"},
+		{"倒挂", "2026-11-01T00:00:00Z", "2026-10-01T00:00:00Z", "to must not be earlier than from"},
+		{"超长窗口", "2020-01-01T00:00:00Z", "2026-11-01T00:00:00Z", "The query window must not exceed"},
 	}
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {

@@ -142,9 +142,9 @@ describe('TicketDetail 流程动作门控', () => {
 
   it('只渲染后端 availableActions 与权限码同时命中的动作', async () => {
     await renderDetail(['resolve']);
-    expect(screen.getByRole('button', { name: /解\s*决/ })).toBeInTheDocument();
-    expect(screen.queryByRole('button', { name: /接\s*单/ })).toBeNull();
-    expect(screen.queryByRole('button', { name: /关\s*闭/ })).toBeNull();
+    expect(screen.getByRole('button', { name: /^Resolve$/ })).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /^Accept$/ })).toBeNull();
+    expect(screen.queryByRole('button', { name: /^Close$/ })).toBeNull();
   });
 
   it('state-v2 不可用时按 fail-closed 隐藏流程动作，不按权限码猜状态机', async () => {
@@ -159,30 +159,30 @@ describe('TicketDetail 流程动作门控', () => {
     render(<App><TicketDetail /></App>);
     await screen.findByText('TKT-202609-000017');
     await waitFor(() => expect(mockTryGetWorkflowState).toHaveBeenCalledWith(17));
-    expect(screen.queryByRole('button', { name: /接\s*单/ })).toBeNull();
-    expect(screen.queryByRole('button', { name: /解\s*决/ })).toBeNull();
+    expect(screen.queryByRole('button', { name: /^Accept$/ })).toBeNull();
+    expect(screen.queryByRole('button', { name: /^Resolve$/ })).toBeNull();
   });
 
   it('无 ticket:update/resolve 时不给出解决按钮（与后端 RequirePermission 对齐）', async () => {
     await renderDetail(['resolve'], ['ticket:read', 'ticket:assign']);
-    expect(screen.queryByRole('button', { name: /解\s*决/ })).toBeNull();
+    expect(screen.queryByRole('button', { name: /^Resolve$/ })).toBeNull();
   });
 
   it('点接单调用 /tickets/workflow/accept 并重新拉取状态机', async () => {
     await renderDetail(['accept']);
-    fireEvent.click(screen.getByRole('button', { name: /接\s*单/ }));
+    fireEvent.click(screen.getByRole('button', { name: /^Accept$/ }));
     await waitFor(() => expect(mockAcceptTicket).toHaveBeenCalledWith(17));
     await waitFor(() => expect(mockTryGetWorkflowState).toHaveBeenCalledTimes(2));
   });
 
   it('解决动作提交走 workflow 事务端点并带上解决方案', async () => {
     await renderDetail(['resolve']);
-    fireEvent.click(screen.getByRole('button', { name: /解\s*决/ }));
+    fireEvent.click(screen.getByRole('button', { name: /^Resolve$/ }));
     const dialog = await screen.findByRole('dialog');
     const textarea = dialog.querySelector('textarea');
     expect(textarea).not.toBeNull();
     fireEvent.change(textarea!, { target: { value: '更换网线后恢复' } });
-    fireEvent.click(screen.getByRole('button', { name: /确\s*认/ }));
+    fireEvent.click(screen.getByRole('button', { name: /^Confirm$/ }));
     await waitFor(() =>
       expect(mockResolveTicketWorkflow).toHaveBeenCalledWith(17, {
         resolution: '更换网线后恢复',

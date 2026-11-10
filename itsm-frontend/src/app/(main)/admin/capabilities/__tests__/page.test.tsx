@@ -100,7 +100,7 @@ describe('能力矩阵控制台', () => {
     expect(screen.getByText('callback token mismatch')).toBeInTheDocument();
     expect(screen.getByText(/回调验签只有单测/)).toBeInTheDocument();
     // 部署未就绪与探测失败都计入「此刻不可用」，并给出汇总告警。
-    expect(screen.getByText('2 项能力此刻不可用')).toBeInTheDocument();
+    expect(screen.getByText("2 Ability is not available at this time")).toBeInTheDocument();
   });
 
   it('GA 条目不得带 pilot 理由（否则成熟度与说明自相矛盾）', async () => {
@@ -114,7 +114,7 @@ describe('能力矩阵控制台', () => {
     const gaRow = screen.getByText('problem').closest('tr');
     expect(gaRow).not.toBeNull();
     expect(gaRow?.textContent).toContain('GA');
-    expect(gaRow?.textContent).not.toContain('晋升条件');
+    expect(gaRow?.textContent).not.toContain('Promotion criteria');
   });
 
   it('「未就绪」筛选只保留此刻不可用的能力', async () => {
@@ -126,7 +126,7 @@ describe('能力矩阵控制台', () => {
 
     expect(await screen.findByText('ticket')).toBeInTheDocument();
 
-    const [filterLabel] = screen.getAllByText('未就绪');
+    const [filterLabel] = screen.getAllByText("Not Ready");
     fireEvent.click(filterLabel);
 
     await waitFor(() => expect(screen.queryByText('ticket')).not.toBeInTheDocument());
@@ -144,7 +144,7 @@ describe('能力矩阵控制台', () => {
       </App>,
     );
 
-    expect(await screen.findByText(/能力矩阵为空/)).toBeInTheDocument();
+    expect(await screen.findByText(/The capability matrix is empty, please confirm that the backend \/api\/v1\/capabilities is reachable/)).toBeInTheDocument();
   });
 
   it('预览条目分区显示剩余阻断与晋升条件，并给出已声明条件数', async () => {
@@ -155,13 +155,13 @@ describe('能力矩阵控制台', () => {
     );
 
     expect(await screen.findByText('cmdbDiscovery')).toBeInTheDocument();
-    expect(screen.getAllByText('剩余阻断')).toHaveLength(2);
-    expect(screen.getAllByText('晋升条件')).toHaveLength(2);
+    expect(screen.getAllByText('Remaining blockers')).toHaveLength(2);
+    expect(screen.getAllByText('Promotion criteria')).toHaveLength(2);
     // 分母是预览总数，缺口不能藏起来。
-    expect(screen.getByText(/晋升条件 2\/2/)).toBeInTheDocument();
+    expect(screen.getByText(/Promotion criteria 2\/2/)).toBeInTheDocument();
     const gaRow = screen.getByText('problem').closest('tr');
-    expect(gaRow?.textContent).not.toContain('晋升条件');
-    expect(gaRow?.textContent).not.toContain('剩余阻断');
+    expect(gaRow?.textContent).not.toContain('Promotion criteria');
+    expect(gaRow?.textContent).not.toContain('Remaining blockers');
   });
 
   it('可以按预览理由内容搜索，而不只按能力键', async () => {
@@ -172,7 +172,7 @@ describe('能力矩阵控制台', () => {
     );
 
     expect(await screen.findByText('cmdbDiscovery')).toBeInTheDocument();
-    fireEvent.change(screen.getByPlaceholderText(/按能力键或预览理由搜索/), {
+    fireEvent.change(screen.getByPlaceholderText(/Search capability keys or preview rationale/), {
       target: { value: '真实租户收发' },
     });
 
@@ -189,13 +189,13 @@ describe('能力矩阵控制台', () => {
     );
 
     expect(await screen.findByText('cmdbDiscovery')).toBeInTheDocument();
-    fireEvent.click(screen.getAllByText('查看完整理由')[0]);
+    fireEvent.click(screen.getAllByText('View full rationale')[0]);
 
     const dialog = await screen.findByRole('dialog');
-    expect(within(dialog).getByText('已闭环进展')).toBeInTheDocument();
-    expect(within(dialog).getByText('剩余阻断')).toBeInTheDocument();
-    expect(within(dialog).getByText('晋升条件')).toBeInTheDocument();
-    expect(within(dialog).getByText('接口原文')).toBeInTheDocument();
+    expect(within(dialog).getByText('Completed progress')).toBeInTheDocument();
+    expect(within(dialog).getByText('Remaining blockers')).toBeInTheDocument();
+    expect(within(dialog).getByText('Promotion criteria')).toBeInTheDocument();
+    expect(within(dialog).getByText('Original API response')).toBeInTheDocument();
     // 切分只服务于展示，接口原文必须一字不少地可回看。
     const reason = items.find(item => item.key === 'cmdbDiscovery')?.pilotReason;
     expect(within(dialog).getByText(reason ?? '')).toBeInTheDocument();
@@ -213,8 +213,8 @@ describe('能力矩阵控制台', () => {
       </App>,
     );
 
-    expect(await screen.findByText('未声明晋升条件（契约不完整）')).toBeInTheDocument();
-    expect(screen.getByText(/晋升条件 0\/1/)).toBeInTheDocument();
-    expect(screen.queryByText('查看完整理由')).not.toBeInTheDocument();
+    expect(await screen.findByText('Promotion criteria not declared (incomplete contract)')).toBeInTheDocument();
+    expect(screen.getByText(/Promotion criteria 0\/1/)).toBeInTheDocument();
+    expect(screen.queryByText('View full rationale')).not.toBeInTheDocument();
   });
 });

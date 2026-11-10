@@ -514,8 +514,8 @@ describe('B 类列表页首帧加载态（D56 回归）', () => {
       // 兜底占位只能在 listLoading 为 false 的分支里出现。
       const gatedIndex = source.indexOf('listLoading ? (');
       expect(gatedIndex).toBeGreaterThan(-1);
-      expect(source.indexOf("profile?.department || '未设置'")).toBeGreaterThan(gatedIndex);
-      expect(source.indexOf("profile?.name || profile?.username || '用户'")).toBeGreaterThan(
+      expect(source.indexOf("departmentLabel(profile?.department) || 'Not set'")).toBeGreaterThan(gatedIndex);
+      expect(source.indexOf('profile?.name || profile?.username || "Users"')).toBeGreaterThan(
         gatedIndex,
       );
       // 头像首字母兜底（'U'）同样是占位：未加载时不能渲染成真实头像。
@@ -525,7 +525,7 @@ describe('B 类列表页首帧加载态（D56 回归）', () => {
       expect(avatarGatedIndex).toBeGreaterThan(-1);
       expect(userInitialUsage).toBeGreaterThan(avatarGatedIndex);
       // 角色标签兜底成「用户」同理：不能渲染成「这个账号就是普通用户」。
-      const roleTagIndex = source.indexOf(": '用户'}");
+      const roleTagIndex = source.indexOf(': "Users"}');
       expect(roleTagIndex).toBeGreaterThan(gatedIndex);
     });
   });

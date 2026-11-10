@@ -115,6 +115,6 @@ func TestPredictionService_EmptyTimeRange_DefaultWindow(t *testing.T) {
 		var appErr *common.AppError
 		require.True(t, errors.As(err, &appErr), "非法日期应返回结构化 400")
 		assert.Equal(t, 400, appErr.HTTPStatus)
-		assert.Contains(t, err.Error(), "timeRange 起始日期格式非法")
+		assert.Contains(t, err.Error(), "Invalid timeRange start date")
 	})
 }

@@ -271,7 +271,7 @@ func (h *Handler) Get(c *gin.Context) {
 func (h *Handler) Create(c *gin.Context) {
 	var req SkillUpsertRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		common.ParamErrorWithErr(c, err, "请求参数错误")
+		common.ParamErrorWithErr(c, err, "Wrong request parameters")
 		return
 	}
 	if req.Code == "" {
@@ -317,7 +317,7 @@ func (h *Handler) Create(c *gin.Context) {
 	// 那是提权。缺租户上下文直接拒绝，不做「默认全局」的兜底。
 	tenantID := requestTenantID(c)
 	if tenantID <= 0 {
-		common.Fail(c, common.ForbiddenCode, "缺少租户上下文，无法注册技能")
+		common.Fail(c, common.ForbiddenCode, "Tenant context is missing; cannot register skill")
 		return
 	}
 	if err := h.registry.RegisterScoped(tenantID, skill); err != nil {
@@ -325,7 +325,7 @@ func (h *Handler) Create(c *gin.Context) {
 			common.Fail(c, common.ConflictCode, "skill already registered: "+req.Code)
 			return
 		}
-		common.FailWithErr(c, err, "操作失败")
+		common.FailWithErr(c, err, "Operation failed")
 		return
 	}
 	h.logger.Infow("skill registered", "code", req.Code, "version", req.Version, "category", category)
@@ -349,7 +349,7 @@ func (h *Handler) Update(c *gin.Context) {
 	code := c.Param("code")
 	var req SkillUpsertRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		common.ParamErrorWithErr(c, err, "请求参数错误")
+		common.ParamErrorWithErr(c, err, "Wrong request parameters")
 		return
 	}
 
@@ -514,7 +514,7 @@ func (h *Handler) Invoke(c *gin.Context) {
 	// 调用方可不带 body；此时按 nil 处理。
 	if c.Request.ContentLength > 0 {
 		if err := c.ShouldBindJSON(&req); err != nil {
-			common.ParamErrorWithErr(c, err, "请求参数错误")
+			common.ParamErrorWithErr(c, err, "Wrong request parameters")
 			return
 		}
 	}
@@ -551,7 +551,7 @@ func (h *Handler) Invoke(c *gin.Context) {
 		entitlement, err := h.entitlements.SkillInvocationEntitlement(c.Request.Context(), tenantID, code)
 		if err != nil {
 			h.logger.Warnw("skill entitlement check failed", "skill", code, "tenant_id", tenantID, "error", err)
-			common.RespondError(c, err, "技能交付状态校验失败")
+			common.RespondError(c, err, "Skill delivery status verification failed")
 			return
 		}
 		if !entitlement.Allowed {
@@ -612,13 +612,13 @@ func (h *Handler) enforceRequiredPermissions(c *gin.Context, entry service.Skill
 		if !ok || resource == "" || action == "" {
 			h.logger.Warnw("skill declares malformed requiredPermission",
 				"skill", entry.Code, "permission", perm)
-			common.Forbidden(c, "skill 权限声明格式错误: "+perm)
+			common.Forbidden(c, "Skill permission declaration format is incorrect:"+perm)
 			return false
 		}
 		if !middleware.HasResourcePermission(ctx, h.client, role, resource, action, tenantID) {
 			h.logger.Warnw("skill invoke denied by requiredPermissions",
 				"skill", entry.Code, "permission", perm, "role", role, "tenant_id", tenantID)
-			common.Forbidden(c, "无权限调用该 skill: 缺少 "+perm)
+			common.Forbidden(c, "No permission to call this skill: Missing"+perm)
 			return false
 		}
 	}
@@ -631,10 +631,10 @@ func failInvoke(c *gin.Context, code string, err error) {
 	case errors.Is(err, service.ErrSkillNotFound):
 		common.Fail(c, common.NotFoundCode, "skill not found: "+code)
 	case errors.Is(err, service.ErrSkillValidation):
-		common.ParamErrorWithErr(c, err, "请求参数错误")
+		common.ParamErrorWithErr(c, err, "Wrong request parameters")
 	default:
 		// ErrSkillInvoke 与其它内部错误都映射为 500，但保留 err 链路便于排查。
-		common.FailWithErr(c, err, "操作失败")
+		common.FailWithErr(c, err, "Operation failed")
 	}
 }
 

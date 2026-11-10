@@ -15,6 +15,7 @@ import {
   Legend,
   ResponsiveContainer,
 } from 'recharts';
+import { serviceCategoryLabel } from '@/constants/service-catalog';
 import { ServiceCatalogApi } from '@/lib/api/service-catalog-api';
 import {
   ServiceCategory,
@@ -27,16 +28,16 @@ const { Title, Text } = Typography;
 const COLORS = ['#1890ff', '#52c41a', '#faad14', '#ff4d4f', '#722ed1', '#13c2c2'];
 
 const CATEGORY_LABELS: Record<ServiceCategory, string> = {
-  [ServiceCategory.IT_SERVICE]: 'IT服务',
-  [ServiceCategory.BUSINESS_SERVICE]: '业务服务',
-  [ServiceCategory.TECHNICAL_SERVICE]: '技术服务',
-  [ServiceCategory.SUPPORT_SERVICE]: '支持服务',
+  [ServiceCategory.IT_SERVICE]: 'IT Services',
+  [ServiceCategory.BUSINESS_SERVICE]: 'Business Services',
+  [ServiceCategory.TECHNICAL_SERVICE]: 'Technical Services',
+  [ServiceCategory.SUPPORT_SERVICE]: 'Support Services',
 };
 
 const STATUS_LABELS: Record<ServiceStatus, string> = {
-  [ServiceStatus.PUBLISHED]: '已发布',
-  [ServiceStatus.DRAFT]: '草稿',
-  [ServiceStatus.RETIRED]: '已下线',
+  [ServiceStatus.PUBLISHED]: 'Published',
+  [ServiceStatus.DRAFT]: 'Draft',
+  [ServiceStatus.RETIRED]: 'Offline',
 };
 
 interface ChartDataItem {
@@ -61,7 +62,7 @@ const ServiceCatalogUsagePage = () => {
       });
       setServices(servicesData ?? []);
     } catch (error) {
-      console.error('加载服务目录数据失败:', error);
+      console.error('Failed to load service catalog data:', error);
       setServices([]);
     } finally {
       setListLoading(false);
@@ -87,7 +88,7 @@ const ServiceCatalogUsagePage = () => {
       counts.set(s.category, (counts.get(s.category) ?? 0) + 1);
     });
     return Array.from(counts.entries()).map(([category, value], index) => ({
-      name: CATEGORY_LABELS[category] ?? String(category),
+      name: CATEGORY_LABELS[category] ?? serviceCategoryLabel(String(category)),
       value,
       color: COLORS[index % COLORS.length],
     }));
@@ -124,7 +125,7 @@ const ServiceCatalogUsagePage = () => {
           <p
             className="text-sm"
             style={{ color: payload[0].color }}
-          >{`数量: ${payload[0].value}`}</p>
+          >{`Quantity: ${payload[0].value}`}</p>
         </div>
       );
     }
@@ -136,8 +137,8 @@ const ServiceCatalogUsagePage = () => {
   return (
     <div className="p-6 bg-gray-50 min-h-full">
       <header className="mb-6">
-        <Title level={2}>服务目录使用报表</Title>
-        <p className="text-gray-500 mt-1">服务目录存量结构与分类分布</p>
+        <Title level={2}>Service Catalog Usage Report</Title>
+        <p className="text-gray-500 mt-1">Service catalog inventory structure and classification distribution</p>
       </header>
 
       {/* 控制栏 */}
@@ -150,13 +151,13 @@ const ServiceCatalogUsagePage = () => {
                 onChange={(v) => setStatusFilter(v)}
                 style={{ width: 120 }}
                 options={[
-                  { value: 'all', label: '全部服务' },
-                  { value: ServiceStatus.PUBLISHED, label: '已发布' },
-                  { value: ServiceStatus.DRAFT, label: '草稿' },
-                  { value: ServiceStatus.RETIRED, label: '已下线' },
+                  { value: 'all', label: 'All Services' },
+                  { value: ServiceStatus.PUBLISHED, label: 'Published' },
+                  { value: ServiceStatus.DRAFT, label: 'Draft' },
+                  { value: ServiceStatus.RETIRED, label: 'Offline' },
                 ]}
               />
-              <Text type="secondary">筛选作用于本页全部卡片与图表</Text>
+              <Text type="secondary">Filter applies to all cards and charts on this page</Text>
             </Space>
           </Col>
           <Col>
@@ -164,7 +165,8 @@ const ServiceCatalogUsagePage = () => {
               onClick={loadData}
               className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
             >
-              刷新数据
+
+              Refresh Data
             </button>
           </Col>
         </Row>
@@ -174,13 +176,13 @@ const ServiceCatalogUsagePage = () => {
         className="mb-6"
         type="info"
         showIcon
-        title="口径说明"
-        description="请求量统计（每个服务被申请的次数）依赖后端采集，当前尚未提供；本页展示服务目录的存量结构，不含请求数据。"
+        title="Caliber description"
+        description="Request volume statistics (the number of times each service is applied for) rely on back-end collection and are not currently provided; this page shows the inventory structure of the service directory, excluding request data."
       />
 
       {listLoading ? (
         <div className="flex items-center justify-center h-64">
-          <Spin size="large" description="加载报表数据..." />
+          <Spin size="large" description="Loading report data..." />
         </div>
       ) : (
         <>
@@ -192,7 +194,7 @@ const ServiceCatalogUsagePage = () => {
                   <div className="text-3xl font-bold text-blue-600">
                     {filteredServices.length}
                   </div>
-                  <div className="text-gray-500">服务总数</div>
+                  <div className="text-gray-500">Total Services</div>
                 </div>
               </Card>
             </Col>
@@ -202,7 +204,7 @@ const ServiceCatalogUsagePage = () => {
                   <div className="text-3xl font-bold text-green-600">
                     {filteredServices.filter((s) => s.status === ServiceStatus.PUBLISHED).length}
                   </div>
-                  <div className="text-gray-500">已发布服务</div>
+                  <div className="text-gray-500">Published service</div>
                 </div>
               </Card>
             </Col>
@@ -212,7 +214,7 @@ const ServiceCatalogUsagePage = () => {
                   <div className="text-3xl font-bold text-orange-600">
                     {filteredServices.filter((s) => s.status === ServiceStatus.DRAFT).length}
                   </div>
-                  <div className="text-gray-500">草稿服务</div>
+                  <div className="text-gray-500">Draft service</div>
                 </div>
               </Card>
             </Col>
@@ -221,7 +223,7 @@ const ServiceCatalogUsagePage = () => {
           {/* 图表区域 */}
           <Row gutter={[16, 16]}>
             <Col xs={24} lg={12}>
-              <Card title="按服务分类分布">
+              <Card title="Distribution by service category">
                 {hasData && byCategory.length > 0 ? (
                   <ResponsiveContainer width="100%" height={300}>
                     <PieChart>
@@ -246,13 +248,13 @@ const ServiceCatalogUsagePage = () => {
                     </PieChart>
                   </ResponsiveContainer>
                 ) : (
-                  <Empty description="暂无服务数据" />
+                  <Empty description="No service data yet" />
                 )}
               </Card>
             </Col>
 
             <Col xs={24} lg={12}>
-              <Card title="按状态分布">
+              <Card title="Distribution by state">
                 {hasData && byStatus.length > 0 ? (
                   <ResponsiveContainer width="100%" height={300}>
                     <BarChart data={byStatus}>
@@ -261,7 +263,7 @@ const ServiceCatalogUsagePage = () => {
                       <YAxis allowDecimals={false} />
                       <Tooltip content={<CustomTooltip />} />
                       <Legend />
-                      <Bar dataKey="value" name="服务数量" fill="#1890ff">
+                      <Bar dataKey="value" name="Service quantity" fill="#1890ff">
                         {byStatus.map((entry, index) => (
                           <Cell
                             key={`cell-${index}`}
@@ -272,7 +274,7 @@ const ServiceCatalogUsagePage = () => {
                     </BarChart>
                   </ResponsiveContainer>
                 ) : (
-                  <Empty description="暂无服务数据" />
+                  <Empty description="No service data yet" />
                 )}
               </Card>
             </Col>

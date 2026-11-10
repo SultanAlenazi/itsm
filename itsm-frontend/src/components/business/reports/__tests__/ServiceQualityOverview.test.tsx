@@ -79,9 +79,9 @@ describe('ServiceQualityOverview', () => {
     render(<ServiceQualityOverview />);
 
     await waitFor(() => {
-      expect(screen.getByText('服务质量总览')).toBeInTheDocument();
+      expect(screen.getByText('Service Quality Overview')).toBeInTheDocument();
     });
-    expect(screen.queryByText('工单总数')).not.toBeInTheDocument();
+    expect(screen.queryByText('Total Tickets')).not.toBeInTheDocument();
     expect(mockGetServiceQuality).toHaveBeenCalledWith(30);
   });
 
@@ -91,9 +91,9 @@ describe('ServiceQualityOverview', () => {
 
     expect(await screen.findByText('未关闭工单')).toBeInTheDocument();
     expect(screen.getByText('120')).toBeInTheDocument();
-    expect(screen.getByText('全租户口径')).toBeInTheDocument();
-    expect(screen.getByText('问题统计')).toBeInTheDocument();
-    expect(screen.getByText('变更统计')).toBeInTheDocument();
+    expect(screen.getByText('All tenant records')).toBeInTheDocument();
+    expect(screen.getByText('Problem Statistics')).toBeInTheDocument();
+    expect(screen.getByText('Change Statistics')).toBeInTheDocument();
   });
 
   it('块缺省时如实标注未接入，不用全零冒充统计结果', async () => {
@@ -103,19 +103,19 @@ describe('ServiceQualityOverview', () => {
     render(<ServiceQualityOverview />);
 
     await waitFor(() => {
-      expect(screen.getAllByText('该统计块未接入')).toHaveLength(3);
+      expect(screen.getAllByText('This statistics block is not connected')).toHaveLength(3);
     });
     // 缺省块不渲染任何统计数值
-    expect(screen.queryByText('问题总数')).not.toBeInTheDocument();
-    expect(screen.queryByText('变更总数')).not.toBeInTheDocument();
+    expect(screen.queryByText('Total Problems')).not.toBeInTheDocument();
+    expect(screen.queryByText('Total Changes')).not.toBeInTheDocument();
   });
 
   it('加载失败时显示错误与重试入口', async () => {
     mockGetServiceQuality.mockRejectedValue(new Error('service unavailable'));
     render(<ServiceQualityOverview />);
 
-    expect(await screen.findByText('服务质量总览加载失败')).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /重试/ })).toBeInTheDocument();
+    expect(await screen.findByText('Failed to load service quality overview')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /Retry/ })).toBeInTheDocument();
   });
 
   it('切换窗口后按新天数重新请求', async () => {
@@ -123,7 +123,7 @@ describe('ServiceQualityOverview', () => {
     render(<ServiceQualityOverview />);
 
     await screen.findByText('未关闭工单');
-    await userEvent.click(screen.getByText('近 60 天'));
+    await userEvent.click(screen.getByText('Last 60 Days'));
     await waitFor(() => {
       expect(mockGetServiceQuality).toHaveBeenLastCalledWith(60);
     });

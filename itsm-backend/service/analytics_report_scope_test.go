@@ -172,12 +172,12 @@ func TestReportExports_InheritViewerScope(t *testing.T) {
 	csvOwn, _, err := analyticsSvc.ExportAnalytics(f.ctx, analyticsReportRequest(), "csv", f.tenantID,
 		DashboardViewer{UserID: f.viewerID, Role: "agent"})
 	require.NoError(t, err)
-	require.Contains(t, string(csvOwn), "总计,2", "导出必须与页面同一行级口径")
+	require.Contains(t, string(csvOwn), "Total,2", "导出必须与页面同一行级口径")
 
 	csvAll, _, err := analyticsSvc.ExportAnalytics(f.ctx, analyticsReportRequest(), "csv", f.tenantID,
 		DashboardViewer{ScopeAll: true})
 	require.NoError(t, err)
-	require.Contains(t, string(csvAll), "总计,3")
+	require.Contains(t, string(csvAll), "Total,3")
 
 	predSvc := NewPredictionService(f.client, zaptest.NewLogger(t).Sugar())
 	predReq := &dto.TrendPredictionRequest{PredictionType: "volume", TimeRange: []string{"2024-01-01", "2024-01-31"}}

@@ -122,8 +122,8 @@ const CIList: React.FC = () => {
   const deleteMutation = useDeleteCIMutation();
   const handleDelete = (id: number) => {
     Modal.confirm({
-      title: '确认删除',
-      content: '确定要删除此配置项吗？相关关系也将受到影响。',
+      title: 'Confirm Delete',
+      content: 'Are you sure you want to delete this configuration item? Related relationships will also be affected.',
       onOk: () => deleteMutation.mutateAsync(String(id)).catch(() => {}),
     });
   };
@@ -140,12 +140,12 @@ const CIList: React.FC = () => {
   // 批量删除：走 useDeleteCIMutation，按条 mutateAsync + Promise.allSettled 统计成功/失败
   const handleBatchDelete = () => {
     if (selectedRowKeys.length === 0) {
-      message.warning('请先选择要删除的配置项');
+      message.warning('Please select the configuration item to delete first');
       return;
     }
     Modal.confirm({
-      title: '批量删除',
-      content: `确定要删除选中的 ${selectedRowKeys.length} 个配置项吗？此操作不可恢复。`,
+      title: 'Batch Delete',
+      content: `Are you sure you want to delete the selected ${selectedRowKeys.length} Configuration item? This operation is irreversible.`,
       onOk: async () => {
         const results = await Promise.allSettled(
           selectedRowKeys.map(id => deleteMutation.mutateAsync(String(id))),
@@ -153,11 +153,11 @@ const CIList: React.FC = () => {
         const succeeded = results.filter(r => r.status === 'fulfilled').length;
         const failed = results.length - succeeded;
         if (failed === 0) {
-          message.success(`成功删除 ${succeeded} 个配置项`);
+          message.success(`Deleted successfully ${succeeded} configuration items`);
         } else if (succeeded === 0) {
-          message.error(`批量删除失败：${failed} 个配置项均未删除`);
+          message.error(`Batch deletion failed:${failed} None of the configuration items have been deleted`);
         } else {
-          message.warning(`成功删除 ${succeeded} 个，失败 ${failed} 个，请检查后重试`);
+          message.warning(`Deleted successfully ${succeeded} , failed ${failed} please check and try again`);
         }
         setSelectedRowKeys([]);
         listQuery.refetch();
@@ -169,25 +169,25 @@ const CIList: React.FC = () => {
   // 旧实现只把引号翻倍，形如 =HYPERLINK(...) 的 CI 名称在 Excel/WPS 打开即执行。
   const handleExport = () => {
     if (selectedRowKeys.length === 0) {
-      message.warning('请先选择要导出的配置项');
+      message.warning('Please select the configuration items to be exported first');
       return;
     }
     const selectedData = data.filter(item => selectedRowKeys.includes(item.id));
     const csv = buildCsv<ConfigurationItem>(
       [
         { title: 'ID', render: item => item.id },
-        { title: '名称', render: item => item.name },
-        { title: '类型', render: item => getCITypeLabel(types, item.ciTypeId, item.type) },
-        { title: '云厂商', render: item => item.cloudProvider || '' },
-        { title: '状态', render: item => item.status },
-        { title: '型号', render: item => item.model || '' },
-        { title: '厂商', render: item => item.vendor || '' },
-        { title: '最后更新', render: item => item.updatedAt || '' },
+        { title: "Name", render: item => item.name },
+        { title: "Type", render: item => getCITypeLabel(types, item.ciTypeId, item.type) },
+        { title: "Cloud Provider", render: item => item.cloudProvider || '' },
+        { title: "Status", render: item => item.status },
+        { title: "Model", render: item => item.model || '' },
+        { title: "Vendor", render: item => item.vendor || '' },
+        { title: "Last Update", render: item => item.updatedAt || '' },
       ],
       selectedData
     );
-    downloadCsv(`配置项导出_${dayjs().format('YYYYMMDD_HHmmss')}`, csv);
-    message.success(`已导出 ${selectedData.length} 条记录`);
+    downloadCsv(`Configuration item export_${dayjs().format('YYYYMMDD_HHmmss')}`, csv);
+    message.success(`Exported ${selectedData.length} records`);
   };
 
   // 表格行选择配置
@@ -203,7 +203,7 @@ const CIList: React.FC = () => {
       width: 70,
     },
     {
-      title: '名称',
+      title: 'Name',
       dataIndex: 'name',
       ellipsis: true,
       render: (text: string, record: ConfigurationItem) => (
@@ -217,19 +217,19 @@ const CIList: React.FC = () => {
       ),
     },
     {
-      title: '类型',
+      title: 'Type',
       width: 120,
       render: (_: unknown, record: ConfigurationItem) => {
-        return getCITypeLabel(types, record.ciTypeId, record.type) || `类型 ${record.ciTypeId}`;
+        return getCITypeLabel(types, record.ciTypeId, record.type) || `Type ${record.ciTypeId}`;
       },
     },
     {
-      title: '云厂商',
+      title: 'Cloud Provider',
       width: 120,
       render: (_: unknown, record: ConfigurationItem) => record.cloudProvider || '-',
     },
     {
-      title: '状态',
+      title: 'Status',
       dataIndex: 'status',
       width: 100,
       render: (status: CIStatus) => (
@@ -237,7 +237,7 @@ const CIList: React.FC = () => {
       ),
     },
     {
-      title: '型号/厂商',
+      title: 'Model/Manufacturer',
       key:'modelVendor',
       width: 180,
       render: (_: unknown, record: ConfigurationItem) => (
@@ -247,35 +247,35 @@ const CIList: React.FC = () => {
       ),
     },
     {
-      title: '最后更新',
+      title: 'Last Update',
       width: 160,
       render: (_: unknown, record: ConfigurationItem) => {
         return record.updatedAt ? dayjs(record.updatedAt).format('YYYY-MM-DD HH:mm') : '-';
       },
     },
     {
-      title: '操作',
+      title: 'Actions',
       key: 'action',
       width: 120,
       render: (_: unknown, record: ConfigurationItem) => (
         <Space size="small">
           {canUpdateCI && (
-            <Tooltip title="编辑">
+            <Tooltip title="Edit">
               <Button
                 type="text"
                 icon={<Pencil />}
-                aria-label="编辑"
+                aria-label="Edit"
                 onClick={() => router.push(`/cmdb/cis/${record.id}/edit`)}
               />
             </Tooltip>
           )}
           {canDeleteCI && (
-            <Tooltip title="删除">
+            <Tooltip title="Delete">
               <Button
                 type="text"
                 danger
                 icon={<Trash2 />}
-                aria-label="删除"
+                aria-label="Delete"
                 onClick={() => handleDelete(record.id)}
               />
             </Tooltip>
@@ -291,7 +291,7 @@ const CIList: React.FC = () => {
         {/* 搜索工具栏 */}
         <div className="mb-4 flex flex-wrap items-center gap-3">
           <Input
-            placeholder="搜索名称/编号"
+            placeholder="Search name/number"
             allowClear
             value={searchInput}
             onChange={event => handleSearchInputChange(event.target.value)}
@@ -300,16 +300,16 @@ const CIList: React.FC = () => {
             style={{ width: 200 }}
           />
           <Select
-            aria-label="CI 类型"
-            placeholder="CI 类型"
+            aria-label="CI Types"
+            placeholder="CI Types"
             style={{ width: 140 }}
             allowClear
             value={filters.ciTypeId}
             onChange={value => handleFilterChange({ ciTypeId: value })}
            options={types.map(t => ({ value: t.id, label: t.description?.trim() || t.name }))} />
           <Select
-            aria-label="状态"
-            placeholder="状态"
+            aria-label="Status"
+            placeholder="Status"
             style={{ width: 110 }}
             allowClear
             value={filters.status}
@@ -317,10 +317,12 @@ const CIList: React.FC = () => {
            options={Object.entries(CIStatusLabels).map(([value, label]) => ({ value: value, label: label }))} />
           <Space>
             <Button type="primary" onClick={handleSearch}>
-              查询
+
+              Query
             </Button>
             <Button icon={<RotateCcw />} onClick={() => listQuery.refetch()} loading={listQuery.isFetching}>
-              刷新
+
+              Refresh
             </Button>
           </Space>
           {canCreateCI && (
@@ -330,7 +332,8 @@ const CIList: React.FC = () => {
               className="ml-auto"
               onClick={() => router.push('/cmdb/cis/create')}
             >
-              新建配置项
+
+              New Configuration Item
             </Button>
           )}
         </div>
@@ -339,20 +342,24 @@ const CIList: React.FC = () => {
         {selectedRowKeys.length > 0 && (
           <div className="mb-4 p-3 bg-blue-50 rounded-lg flex items-center gap-3">
             <span className="text-sm text-blue-700">
-              已选择 <strong>{selectedRowKeys.length}</strong> 项
+
+              Selected <strong>{selectedRowKeys.length}</strong>  items
             </span>
             <Space>
               <Button size="small" icon={<Download />} onClick={handleExport}>
-                导出
+
+                Export
               </Button>
               {canDeleteCI && (
                 <Button size="small" danger icon={<Trash2 />} onClick={handleBatchDelete}>
-                  批量删除
+
+                  Batch Delete
                 </Button>
               )}
             </Space>
             <Button size="small" type="link" onClick={() => setSelectedRowKeys([])}>
-              取消选择
+
+              Cancel Selection
             </Button>
           </div>
         )}
@@ -372,9 +379,9 @@ const CIList: React.FC = () => {
                   state="error"
                   minHeight={200}
                   error={{
-                    title: '加载失败',
-                    description: '加载配置项列表失败',
-                    actionText: '重试',
+                    title: 'LoadingFailed',
+                    description: 'Failed to load configuration item list',
+                    actionText: 'Retry',
                     onAction: () => listQuery.refetch(),
                   }}
                 />
@@ -383,10 +390,10 @@ const CIList: React.FC = () => {
                   state="empty"
                   minHeight={200}
                   empty={{
-                    title: '暂无配置项',
-                    description: '还没有登记配置项，可先新建，或从云资源列表导入。',
+                    title: 'No configuration items yet',
+                    description: 'There is no registered configuration item yet. You can create a new one first or import it from the cloud resource list.',
                     icon: <Database size={48} />,
-                    actionText: '创建配置项',
+                    actionText: 'Create configuration item',
                     onAction: () => router.push('/cmdb/cis/create'),
                   }}
                 />
@@ -398,7 +405,7 @@ const CIList: React.FC = () => {
             total: total,
             showSizeChanger: true,
             showQuickJumper: true,
-            showTotal: total => `共 ${total} 条记录`,
+            showTotal: total => `Total ${total} records`,
             pageSizeOptions: ['10', '20', '50', '100'],
             onChange: (page, pageSize) => setQuery({ ...query, page, pageSize }),
           }}

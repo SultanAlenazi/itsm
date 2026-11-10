@@ -27,10 +27,10 @@ func TestMaskSensitiveFields_MasksPasswordCamelCase(t *testing.T) {
 
 func TestMaskSensitiveFields_MasksAllNamingVariants(t *testing.T) {
 	cases := map[string]string{
-		"snake_case": `{"new_password":"x1"}`,
-		"kebab-case": `{"new-password":"x1"}`,
-		"camelCase":  `{"newPassword":"x1"}`,
-		"PascalCase": `{"NewPassword":"x1"}`,
+		"snake_case":  `{"new_password":"x1"}`,
+		"kebab-case":  `{"new-password":"x1"}`,
+		"camelCase":   `{"newPassword":"x1"}`,
+		"PascalCase":  `{"NewPassword":"x1"}`,
 		"upper snake": `{"NEW_PASSWORD":"x1"}`,
 	}
 	for name, body := range cases {
@@ -42,21 +42,21 @@ func TestMaskSensitiveFields_MasksAllNamingVariants(t *testing.T) {
 
 func TestMaskSensitiveFields_MasksCredentialKeys(t *testing.T) {
 	values := map[string]string{
-		"accessToken":    "tok-a",
-		"refresh_token":  "tok-r",
-		"csrfToken":      "csrf-v",
-		"idToken":        "id-v",
-		"clientSecret":   "sec-v",
-		"app_secret":     "sec-a",
-		"x-api-key":      "key-v",
-		"apiKey":         "key-a",
-		"privateKey":     "pk-v",
-		"authorization":  "Bearer abc",
-		"session_token":  "sess-v",
-		"bot_token":      "bot-v",
-		"db_password":    "db-v",
-		"encrypt_key":    "enc-v",
-		"feishu_token":   "fs-v",
+		"accessToken":   "tok-a",
+		"refresh_token": "tok-r",
+		"csrfToken":     "csrf-v",
+		"idToken":       "id-v",
+		"clientSecret":  "sec-v",
+		"app_secret":    "sec-a",
+		"x-api-key":     "key-v",
+		"apiKey":        "key-a",
+		"privateKey":    "pk-v",
+		"authorization": "Bearer abc",
+		"session_token": "sess-v",
+		"bot_token":     "bot-v",
+		"db_password":   "db-v",
+		"encrypt_key":   "enc-v",
+		"feishu_token":  "fs-v",
 	}
 	for key, value := range values {
 		t.Run(key, func(t *testing.T) {

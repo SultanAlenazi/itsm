@@ -31,7 +31,9 @@ describe('splitPilotReason', () => {
   });
 
   it('没有显式阻断标记时把「晋升条件：」之前的整段当作阻断，不丢信息', () => {
-    const parts = splitPilotReason('回调验签只有单测，未与真实租户联调。晋升条件：真实租户收发 + 验签验收。');
+    const parts = splitPilotReason(
+      '回调验签只有单测，未与真实租户联调。晋升条件：真实租户收发 + 验签验收。'
+    );
     expect(parts?.structured).toBe(true);
     expect(parts?.progress).toBe('');
     expect(parts?.blockers).toContain('回调验签只有单测');
@@ -53,7 +55,8 @@ describe('splitPilotReason', () => {
   });
 
   it('重复段时取最后一次晋升条件，且重复内容留在原文与阻断段里', () => {
-    const duplicated = '进展。剩余阻断：X 未验收。晋升条件：条件一。剩余阻断：X 未验收。晋升条件：条件二。';
+    const duplicated =
+      '进展。剩余阻断：X 未验收。晋升条件：条件一。剩余阻断：X 未验收。晋升条件：条件二。';
     const parts = splitPilotReason(duplicated);
     expect(parts?.criteria).toBe('条件二');
     expect(parts?.full).toBe(duplicated);
@@ -62,9 +65,36 @@ describe('splitPilotReason', () => {
   });
 
   it('只清理切分留下的尾部句号，不改写句子内容', () => {
-    const parts = splitPilotReason('进展内容。剩余阻断：缺真实语料验收；晋升条件：跑一次质量验收。');
+    const parts = splitPilotReason(
+      '进展内容。剩余阻断：缺真实语料验收；晋升条件：跑一次质量验收。'
+    );
     expect(parts?.progress).toBe('进展内容');
     expect(parts?.blockers).toBe('缺真实语料验收');
     expect(parts?.criteria).toBe('跑一次质量验收');
+  });
+});
+
+// The English-only backend must retain the same structured preview contract.
+it('splits English promotion criteria and blockers without losing the source', () => {
+  const full =
+    'Execution is wired. Remaining blockers: Real-account acceptance is pending. Promotion criteria: Complete live-account discovery acceptance.';
+  expect(splitPilotReason(full)).toEqual({
+    progress: 'Execution is wired.',
+    blockers: 'Real-account acceptance is pending.',
+    criteria: 'Complete live-account discovery acceptance.',
+    structured: true,
+    full,
+  });
+});
+
+it('separates the AI capability reason with a singular English blocker marker', () => {
+  const full =
+    'Triage and RCA include model attribution and audits. Remaining blocker: Configured-LLM acceptance is pending. Promotion criteria: Complete live-provider acceptance.';
+  expect(splitPilotReason(full)).toEqual({
+    progress: 'Triage and RCA include model attribution and audits.',
+    blockers: 'Configured-LLM acceptance is pending.',
+    criteria: 'Complete live-provider acceptance.',
+    structured: true,
+    full,
   });
 });

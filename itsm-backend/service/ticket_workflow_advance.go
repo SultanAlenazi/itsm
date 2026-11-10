@@ -61,7 +61,7 @@ func advanceTicketWorkflowTx(
 	bridge := &BPMNApprovalBridge{client: txc, logger: logger}
 	lookup, err := bridge.findFirstPendingTaskWithClient(ctx, txc, tenantID, string(dto.BusinessTypeTicket), ticketID)
 	if err != nil {
-		return fmt.Errorf("查询工单流程待办失败: %w", err)
+		return fmt.Errorf("Failed to query ticket workflow tasks: %w", err)
 	}
 	if !lookup.bound || lookup.task == nil {
 		return nil
@@ -69,7 +69,7 @@ func advanceTicketWorkflowTx(
 	task := lookup.task
 	if ticketWorkflowApprovalNode(task) {
 		return common.NewBusinessError(common.ConflictCode,
-			"流程当前停在审批节点，请先完成流程审批后再操作工单",
+			"The workflow is waiting at an approval node. Complete workflow approval before acting on the ticket",
 			fmt.Sprintf("ticketId=%d taskId=%s", ticketID, task.TaskID))
 	}
 
@@ -99,10 +99,10 @@ func advanceTicketWorkflowTx(
 	engine := NewCustomProcessEngine(txc, logger)
 	if customEngine, ok := engine.(*CustomProcessEngine); ok {
 		if err := customEngine.CompleteTaskWithClient(workflowCtx, txc, task.TaskID, variables); err != nil {
-			return fmt.Errorf("推进工单流程任务失败: %w", err)
+			return fmt.Errorf("Failed to advance ticket workflow task: %w", err)
 		}
 	} else if err := engine.CompleteTask(workflowCtx, task.TaskID, variables); err != nil {
-		return fmt.Errorf("推进工单流程任务失败: %w", err)
+		return fmt.Errorf("Failed to advance ticket workflow task: %w", err)
 	}
 	logger.Infow("工单生命周期动作已同事务推进BPMN待办",
 		"ticket_id", ticketID, "tenant_id", tenantID, "action", action,

@@ -77,11 +77,11 @@ describe('UserManagement 首帧加载语义', () => {
     renderPage();
 
     expect(hasStandaloneEmptyBlock()).toBe(false);
-    expect(screen.queryByText('暂无用户数据')).not.toBeInTheDocument();
+    expect(screen.queryByText('No user data yet')).not.toBeInTheDocument();
     // 统计卡同样不能先把「还没拉到」画成「总用户数 0」
-    expect(screen.queryByText('总用户数')).not.toBeInTheDocument();
-    expect(screen.queryByText('活跃用户')).not.toBeInTheDocument();
-    expect(screen.queryByText('禁用用户')).not.toBeInTheDocument();
+    expect(screen.queryByText('Total Users')).not.toBeInTheDocument();
+    expect(screen.queryByText('Active Users')).not.toBeInTheDocument();
+    expect(screen.queryByText('Inactive Users')).not.toBeInTheDocument();
   });
 
   // 修复前：loadUsers 未完成时 loading=false，页面无任何加载指示，用户以为已加载完。
@@ -112,7 +112,7 @@ describe('UserManagement 首帧加载语义', () => {
 
     await waitFor(() => expect(mockedUserApi.getUsers).toHaveBeenCalledTimes(1));
     await waitFor(() => expect(hasStandaloneEmptyBlock()).toBe(true));
-    expect(screen.getByText('暂无用户数据')).toBeInTheDocument();
+    expect(screen.getByText('No user data yet')).toBeInTheDocument();
   });
 
   // 修复前：列表 loading 与提交按钮共用一个状态，列表转圈时提交按钮也跟着转。

@@ -9,6 +9,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- **English branch CI validation (2026-11-10)**: replace smart quotes in translated UI text, add regression coverage for translated handlers and shared frontend modules, refresh generated API documentation, and apply the pinned Go formatter. Keep the browser integration gate on Playwright-supported Ubuntu 24.04 and separate standalone and reusable documentation gate concurrency groups so both complete.
+- **English branch upstream integration (2026-11-10)**: merge the latest main-line security, workflow, cloud discovery, reporting, and loading-state fixes while preserving English UI text. Translate the new service-quality overview and ticket workflow actions, and support English capability-reason markers alongside saved legacy reasons. Preserve upstream removal of the retired change-impact component and update the matching regression assertions. Return empty ticket-statistics groups as JSON arrays so the new report overview also renders for empty tenants, with a PostgreSQL HTTP regression covering tenant isolation.
+- **Remaining English UI text (2026-11-10)**: audit every App Router page and translate remaining built-in workflow diagrams/catalogs, organizational defaults, service/ticket/SLA metadata, capability and integration descriptions, notifications, and offline messages. Display legacy category, pricing-unit, and department values in English while preserving API values. Add guarded, reversible migrations for unchanged product baseline records; preserve customized text, immutable identifiers, customer content, and historical audit snapshots. Regression coverage includes production catalog handlers, built-in manifests, and rendered pricing/category forms; local PostgreSQL probes verify migration repeatability, customization preservation, and exact rollback.
+- **Windows local startup (2026-11-09)**: use portable forward-slash paths when reading embedded BPMN templates, so database initialization and workflow deployment work on Windows. Added a regression test that reads every built-in template through the production template service.
+- **English dashboard (2026-11-09)**: translate backend-supplied KPI labels, quick actions, activity statuses, and default dashboard/report descriptions. Verified through a real local admin login and rendered dashboard; stored incident categories and cloud identifiers remain unchanged.
+
+
+### Changed
+
+- **English-only application (2026-11-06)**: make `en-US` the only UI language; remove the Chinese dictionary, language switcher and Chinese fallback; normalize saved browser preferences; translate built-in UI labels, metadata, PWA/offline pages and workflow templates. Add English menu baselines and an idempotent migration for unchanged built-in menu labels. Existing user content and stored business identifiers are preserved.
+
+
 ### Added
 
 - **云发现增量水位线落地（2026-11-07）**：cmdbDiscovery 的最后一条实现缺口闭环。此前每轮发现都是从零全量分页列举，中断只能整个 scope 重扫，缺失判定只看单轮 seen 集合——同一窗口的断点补采会把上一轮已见资源误判缺失、推进退役（蓝图 §3.2-17 明令禁止）。现每 (source, serviceCode, region) 落覆盖水位线状态（`discovery_scope_states` 迁移表：coverage start/end + 分页完成证明 + provider watermark，raw-SQL 仓储，时间列 RFC3339 文本跨 PG/SQLite 一致）：① 每页 checkpoint，中断后从水位线 token 续扫、不再从零列举；② 缺失判定改为「窗口起点以来从未露面」口径，补采不误退役；③ 翻页自然耗尽才封窗做缺失扫描（完整覆盖证明）；④ 连续失败 3 次自动重置水位线，防 provider 毒游标死循环；⑤ 调度作业 operation=incremental_discovery 按水位线增量推进，手动 full_discovery 强制新窗。如实口径：主流云 API 无 modified-since，发现仍是全量列举 + 指纹去重写，增量体现在覆盖进度推进、不是「只拉变化」。回归：仓储 sqlite 往返/upsert/租户隔离 3 例 + 执行器 4 例（断点续扫、补采不误退役缺陷锁、全量重置、连续失败重置），变异验证「去窗口过滤/断续扫→红→还原→绿」。剩余阻断仅真实账号验收，晋升条件相应改写。

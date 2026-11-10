@@ -7,11 +7,11 @@ import type { SLAComplianceData } from '../types/dashboard.types';
 import { DashboardChartCard } from './DashboardChartCard';
 
 /**
- * SLA 达成率监控。
+ * SLA compliance monitoring。
  *
  * 数据源是 /dashboard/overview 的 slaData —— **一个聚合对象**，不是按服务拆分
  * 的数组。此前组件按 `SLAData[]` 消费并先做 `Array.isArray(data)` 过滤，
- * 后端返回对象时恒为空数组，面板一直显示"暂无数据"（契约与实现同时错，
+ * 后端返回对象时恒为空数组，面板一直显示"No data"（契约与实现同时错，
  * 类型检查却发现不了）。现在直接读对象字段，三个达成率分别来自后端按
  * violation_type 分桶的真实结果，不再互相抄。
  */
@@ -36,10 +36,10 @@ const SLAComplianceChart: React.FC<{
   };
 
   const getSLAStatus = (value: number) => {
-    if (value >= 95) return { text: '优秀', color: 'success' };
-    if (value >= 90) return { text: '良好', color: 'processing' };
-    if (value >= 85) return { text: '一般', color: 'warning' };
-    return { text: '需改进', color: 'error' };
+    if (value >= 95) return { text: 'Excellent', color: 'success' };
+    if (value >= 90) return { text: 'Good', color: 'processing' };
+    if (value >= 85) return { text: 'Average', color: 'warning' };
+    return { text: 'Needs improvement', color: 'error' };
   };
 
   const hasValue = compliance !== undefined;
@@ -49,24 +49,24 @@ const SLAComplianceChart: React.FC<{
   // 三条分项：分母都是近 30 天工单总数，所以「无工单」时一律不展示百分比。
   const breakdown = [
     {
-      label: '响应时限达成',
+      label: 'Response time compliance',
       value: num(data?.responseTimeCompliance),
-      hint: '首次响应未超时工单占比',
+      hint: 'Percentage of tickets with an on-time first response',
     },
     {
-      label: '解决时限达成',
+      label: 'Resolution time compliance',
       value: num(data?.resolutionTimeCompliance),
-      hint: '解决未超时工单占比',
+      hint: 'Percentage of tickets resolved on time',
     },
   ];
 
   return (
     <DashboardChartCard
-      title="SLA 达成率监控"
+      title="SLA compliance monitoring"
       subtitle={
         totalTickets > 0
-          ? `近 30 天 ${totalTickets} 张工单，违约 ${data?.breachedTickets ?? 0} 张，临期 ${data?.atRiskTickets ?? 0} 张`
-          : '近 30 天暂无工单，达标率不适用'
+          ? `Last 30 days: ${totalTickets} tickets, ${data?.breachedTickets ?? 0} breached, ${data?.atRiskTickets ?? 0} at risk`
+          : 'No tickets in the last 30 days; compliance is not applicable'
       }
       icon={<GaugeIcon style={{ width: 20, height: 20 }} />}
       iconColor="#8b5cf6"
@@ -84,7 +84,7 @@ const SLAComplianceChart: React.FC<{
         {hasValue ? (
           <>
             <Statistic
-              title="SLA 达成率"
+              title="SLA compliance"
               value={compliance}
               precision={1}
               suffix="%"
@@ -116,7 +116,8 @@ const SLAComplianceChart: React.FC<{
               color: '#999',
             }}
           >
-            暂无数据
+
+            No data
           </div>
         )}
       </div>
@@ -130,7 +131,7 @@ const SLAComplianceChart: React.FC<{
                 <span className="text-xs text-gray-400">{item.hint}</span>
               </div>
               {item.value === undefined ? (
-                <span className="text-xs text-gray-400">暂无数据</span>
+                <span className="text-xs text-gray-400">No data</span>
               ) : (
                 <Progress
                   percent={Math.max(0, Math.min(100, item.value))}

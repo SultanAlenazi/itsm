@@ -44,11 +44,11 @@ func (s *PredictionService) GetTrendPrediction(ctx context.Context, req *dto.Tre
 		var err error
 		startTime, err = time.Parse("2006-01-02", req.TimeRange[0])
 		if err != nil {
-			return nil, common.NewBadRequestError("timeRange 起始日期格式非法，应为 YYYY-MM-DD", err)
+			return nil, common.NewBadRequestError("Invalid timeRange start date; expected YYYY-MM-DD", err)
 		}
 		endTime, err = time.Parse("2006-01-02", req.TimeRange[1])
 		if err != nil {
-			return nil, common.NewBadRequestError("timeRange 结束日期格式非法，应为 YYYY-MM-DD", err)
+			return nil, common.NewBadRequestError("Invalid timeRange end date; expected YYYY-MM-DD", err)
 		}
 	} else {
 		endTime = time.Now()
@@ -79,7 +79,7 @@ func (s *PredictionService) GetTrendPrediction(ctx context.Context, req *dto.Tre
 	}
 	if len(historyTickets) > maxReportTickets {
 		return nil, common.NewBadRequestError(
-			fmt.Sprintf("统计范围内工单数超过 %d 条，请缩小时间范围", maxReportTickets), nil)
+			fmt.Sprintf("The reporting scope exceeds %d tickets; narrow the time range", maxReportTickets), nil)
 	}
 
 	// 根据预测类型生成预测数据
@@ -324,7 +324,7 @@ func (s *PredictionService) exportPredictionToCSV(response *dto.TrendPredictionR
 	buf.Write([]byte{0xEF, 0xBB, 0xBF})
 	w := csv.NewWriter(&buf)
 
-	if err := w.Write([]string{"日期", "预测值", "下限", "上限", "置信度"}); err != nil {
+	if err := w.Write([]string{"Date", "Predicted value", "Lower bound", "Upper bound", "Confidence"}); err != nil {
 		return nil, "", fmt.Errorf("write csv header: %w", err)
 	}
 	for _, point := range response.Predictions {
@@ -344,10 +344,10 @@ func (s *PredictionService) exportPredictionToCSV(response *dto.TrendPredictionR
 		return nil, "", fmt.Errorf("write csv separator: %w", err)
 	}
 	meta := [][]string{
-		{"预测信息"},
-		{"模型", neutralizeSpreadsheetFormula(response.Model)},
-		{"整体置信度", fmt.Sprintf("%.2f", response.Confidence)},
-		{"生成时间", response.GeneratedAt.Format("2006-01-02 15:04:05")},
+		{"Prediction information"},
+		{"Model", neutralizeSpreadsheetFormula(response.Model)},
+		{"Overall confidence", fmt.Sprintf("%.2f", response.Confidence)},
+		{"Generated at", response.GeneratedAt.Format("2006-01-02 15:04:05")},
 	}
 	for _, row := range meta {
 		if err := w.Write(row); err != nil {

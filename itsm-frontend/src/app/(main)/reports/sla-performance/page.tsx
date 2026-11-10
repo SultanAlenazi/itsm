@@ -92,7 +92,7 @@ const SLAPerformanceReport = () => {
         const list: SLAData[] = perfRows.slice(0, 8).map(row => {
           const rate = Math.round(row.complianceRate);
           return {
-            name: row.key === 'unassigned' ? '未绑定SLA' : row.key,
+            name: row.key === 'unassigned' ? 'SLA not bound' : row.key,
             met: rate,
             breached: 100 - rate,
             compliance: rate,
@@ -105,7 +105,7 @@ const SLAPerformanceReport = () => {
         const met = Math.round(compliance);
         setSLAData([
           {
-            name: 'SLA 总体合规',
+            name: "Overall SLA Compliance",
             met,
             breached: 100 - met,
             compliance: met,
@@ -117,8 +117,8 @@ const SLAPerformanceReport = () => {
         setHasData(false);
       }
     } catch (error) {
-      console.error('加载SLA性能数据失败:', error);
-      message.error('加载数据失败');
+      console.error('Failed to load SLA performance data:', error);
+      message.error('Failed to load data');
       setSLAData([]);
     } finally {
       setListLoading(false);
@@ -130,8 +130,8 @@ const SLAPerformanceReport = () => {
   }, [loadData]);
 
   const pieData = [
-    { name: '达标', value: totalMet, color: COLORS.met },
-    { name: '违规', value: totalBreached, color: COLORS.breached },
+    { name: "Compliance", value: totalMet, color: COLORS.met },
+    { name: "Violation", value: totalBreached, color: COLORS.breached },
   ];
 
   interface TooltipPayloadEntry {
@@ -152,7 +152,7 @@ const SLAPerformanceReport = () => {
     if (active && payload && payload.length) {
       return (
         <div className="bg-white p-3 rounded-lg shadow-lg border border-gray-200">
-          <p className="font-semibold text-gray-800 mb-2">{`SLA类型: ${label ?? ''}`}</p>
+          <p className="font-semibold text-gray-800 mb-2">{`SLA type: ${label ?? ''}`}</p>
           {payload.map((entry, index) => (
             <p
               key={`${entry.name ?? 'item'}-${index}`}
@@ -195,7 +195,7 @@ const SLAPerformanceReport = () => {
     if (!hasData || slaData.length === 0) {
       return (
         <Card>
-          <Empty description="暂无SLA性能数据" />
+          <Empty description="No SLA performance data yet" />
         </Card>
       );
     }
@@ -209,7 +209,7 @@ const SLAPerformanceReport = () => {
           <Col xs={24} sm={8}>
             <Card>
               <Statistic
-                title="平均合规率"
+                title="Average Compliance Rate"
                 value={overallRate}
                 suffix="%"
                 styles={{
@@ -229,7 +229,7 @@ const SLAPerformanceReport = () => {
           <Col xs={24} sm={8}>
             <Card>
               <Statistic
-                title="达标次数"
+                title="Number of times achieved"
                 value={totalMet}
                 styles={{ content: { color: COLORS.met } }}
                 prefix={<CheckCircle />}
@@ -239,7 +239,7 @@ const SLAPerformanceReport = () => {
           <Col xs={24} sm={8}>
             <Card>
               <Statistic
-                title="违规次数"
+                title="Number of violations"
                 value={totalBreached}
                 styles={{ content: { color: COLORS.breached } }}
                 prefix={<XCircle />}
@@ -251,7 +251,7 @@ const SLAPerformanceReport = () => {
         {/* 图表区域 */}
         <Row gutter={[16, 16]} className="mb-6">
           <Col xs={24} lg={16}>
-            <Card title="各类型SLA达成情况">
+            <Card title="Achievement status of various types of SLA">
               <ResponsiveContainer width="100%" height={350}>
                 <BarChart data={slaData}>
                   <CartesianGrid strokeDasharray="3 3" />
@@ -259,19 +259,19 @@ const SLAPerformanceReport = () => {
                   <YAxis />
                   <Tooltip content={<CustomTooltip />} />
                   <Legend />
-                  <Bar dataKey="met" name="达标" stackId="a" fill={COLORS.met} />
-                  <Bar dataKey="breached" name="违规" stackId="a" fill={COLORS.breached} />
+                  <Bar dataKey="met" name="Compliance" stackId="a" fill={COLORS.met} />
+                  <Bar dataKey="breached" name="Violation" stackId="a" fill={COLORS.breached} />
                 </BarChart>
               </ResponsiveContainer>
             </Card>
           </Col>
           <Col xs={24} lg={8}>
-            <Card title="总体达标率">
+            <Card title="Overall compliance rate">
               <div className="text-center py-8">
                 <div className="text-5xl font-bold mb-4" style={{ color: COLORS.met }}>
                   {totalForPie > 0 ? ((totalMet / totalForPie) * 100).toFixed(1) : '0.0'}%
                 </div>
-                <Text type="secondary">SLA总体达标率</Text>
+                <Text type="secondary">Overall SLA compliance rate</Text>
                 <Progress
                   percent={totalForPie > 0 ? (totalMet / totalForPie) * 100 : 0}
                   strokeColor={COLORS.met}
@@ -284,7 +284,7 @@ const SLAPerformanceReport = () => {
         </Row>
 
         {/* 合规率详情 */}
-        <Card title="各SLA合规率详情">
+        <Card title="Details of each SLA compliance rate">
           <Row gutter={[16, 16]}>
             {slaData.map((sla, index) => (
               <Col xs={24} sm={12} md={8} key={`${sla.name}-${index}`}>
@@ -334,19 +334,19 @@ const SLAPerformanceReport = () => {
   return (
     <div className="p-6 bg-gray-50 min-h-full">
       <header className="mb-6">
-        <Title level={2}>SLA性能报表</Title>
-        <p className="text-gray-500 mt-1">展示服务级别协议的达成情况和性能指标</p>
+        <Title level={2}>SLA Performance Report</Title>
+        <p className="text-gray-500 mt-1">Display the achievement of service level agreement and performance indicators</p>
       </header>
 
       {/* 控制栏 */}
       <Card className="mb-6">
         <Row justify="space-between" align="middle">
           <Col>
-            <Text className="text-gray-600">SLA合规率监控</Text>
+            <Text className="text-gray-600">SLA compliance rate monitoring</Text>
           </Col>
           <Col>
             <Button icon={<RotateCcw />} onClick={loadData} loading={listLoading}>
-              刷新数据
+              Refresh Data
             </Button>
           </Col>
         </Row>

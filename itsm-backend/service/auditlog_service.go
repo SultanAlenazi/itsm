@@ -42,7 +42,7 @@ func (s *AuditLogService) ListAuditLogs(ctx context.Context, req *dto.ListAuditL
 	// 深分页的 Offset 会让数据库跳过海量行；超过上限直接 400，
 	// 让调用方改用时间窗口而不是无限翻页。
 	if req.Page > maxAuditLogPage {
-		return nil, common.NewBadRequestError(fmt.Sprintf("page 不得超过 %d", maxAuditLogPage), nil)
+		return nil, common.NewBadRequestError(fmt.Sprintf("page must not exceed %d", maxAuditLogPage), nil)
 	}
 
 	q := s.client.AuditLog.Query().Where(
@@ -78,7 +78,7 @@ func (s *AuditLogService) ListAuditLogs(ctx context.Context, req *dto.ListAuditL
 	if req.From != "" {
 		t, err := time.Parse(time.RFC3339, req.From)
 		if err != nil {
-			return nil, common.NewBadRequestError("from 时间格式非法，应为 RFC3339", err)
+			return nil, common.NewBadRequestError("Invalid from timestamp; expected RFC3339", err)
 		}
 		fromTime = t
 		q = q.Where(auditlog.CreatedAtGTE(t))
@@ -86,17 +86,17 @@ func (s *AuditLogService) ListAuditLogs(ctx context.Context, req *dto.ListAuditL
 	if req.To != "" {
 		t, err := time.Parse(time.RFC3339, req.To)
 		if err != nil {
-			return nil, common.NewBadRequestError("to 时间格式非法，应为 RFC3339", err)
+			return nil, common.NewBadRequestError("Invalid to timestamp; expected RFC3339", err)
 		}
 		toTime = t
 		q = q.Where(auditlog.CreatedAtLTE(t))
 	}
 	if !fromTime.IsZero() && !toTime.IsZero() {
 		if toTime.Before(fromTime) {
-			return nil, common.NewBadRequestError("to 不得早于 from", nil)
+			return nil, common.NewBadRequestError("to must not be earlier than from", nil)
 		}
 		if toTime.Sub(fromTime) > time.Duration(maxAuditLogWindowDays)*24*time.Hour {
-			return nil, common.NewBadRequestError(fmt.Sprintf("查询窗口不得超过 %d 天", maxAuditLogWindowDays), nil)
+			return nil, common.NewBadRequestError(fmt.Sprintf("The query window must not exceed %d days", maxAuditLogWindowDays), nil)
 		}
 	}
 

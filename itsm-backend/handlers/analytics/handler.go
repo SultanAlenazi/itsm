@@ -40,19 +40,19 @@ func NewHandler(analyticsService *service.AnalyticsService) *Handler {
 func (h *Handler) ExportAnalytics(ctx *gin.Context) {
 	var req dto.DeepAnalyticsRequest
 	if err := ctx.ShouldBindJSON(&req); err != nil {
-		common.Fail(ctx, common.ParamErrorCode, "请求参数错误")
+		common.Fail(ctx, common.ParamErrorCode, "Wrong request parameters")
 		return
 	}
 
 	format := ctx.DefaultQuery("format", "csv")
 	if format != "csv" && format != "excel" && format != "pdf" {
-		common.Fail(ctx, common.ParamErrorCode, "不支持的导出格式，支持: csv, excel, pdf")
+		common.Fail(ctx, common.ParamErrorCode, "Unsupported export format, supported: csv, excel, pdf")
 		return
 	}
 
 	tenantID, exists := ctx.Get("tenant_id")
 	if !exists {
-		common.Fail(ctx, common.UnauthorizedCode, "未授权访问: 租户信息缺失")
+		common.Fail(ctx, common.UnauthorizedCode, "Unauthorized access: Tenant information is missing")
 		return
 	}
 
@@ -65,7 +65,7 @@ func (h *Handler) ExportAnalytics(ctx *gin.Context) {
 	data, filename, err := h.analyticsService.ExportAnalytics(exportCtx, &req, format, tenantID.(int), viewer)
 	if err != nil {
 		// Fail/FailWithErr 会覆盖 AppError 文案，400 参数错误会变 500。
-		common.RespondError(ctx, err, "导出分析数据失败")
+		common.RespondError(ctx, err, "Failed to export analysis data")
 		return
 	}
 
@@ -95,12 +95,12 @@ func (h *Handler) ExportAnalytics(ctx *gin.Context) {
 func (h *Handler) GetTicketAnalytics(ctx *gin.Context) {
 	tenantID, exists := ctx.Get("tenant_id")
 	if !exists {
-		common.Fail(ctx, common.UnauthorizedCode, "未授权访问: 租户信息缺失")
+		common.Fail(ctx, common.UnauthorizedCode, "Unauthorized access: Tenant information is missing")
 		return
 	}
 	stats, err := h.analyticsService.GetTicketStats(ctx.Request.Context(), tenantID.(int))
 	if err != nil {
-		common.Fail(ctx, common.InternalErrorCode, "获取工单分析失败")
+		common.Fail(ctx, common.InternalErrorCode, "Failed to obtain work order analysis")
 		return
 	}
 	common.Success(ctx, stats)

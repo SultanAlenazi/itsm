@@ -108,7 +108,7 @@ func (s *ReportExportService) ExportToExcel(ctx context.Context, data *dto.DeepA
 	// 生成文件
 	var buf bytes.Buffer
 	if err := f.Write(&buf); err != nil {
-		return nil, "", fmt.Errorf("生成Excel失败: %w", err)
+		return nil, "", fmt.Errorf("Failed to generate Excel: %w", err)
 	}
 
 	filename := fmt.Sprintf("analytics_report_%s.xlsx", time.Now().Format("20060102_150405"))
@@ -248,7 +248,7 @@ func (s *ReportExportService) ExportPredictionToExcel(ctx context.Context, predi
 	// Model 完全来自请求参数（dto 无 oneof 约束），是公式注入的可达入口：
 	// 传 "=HYPERLINK(...)" 时 Excel/WPS 打开即执行。所有用户可控字符串
 	// 落单元格前必须过 neutralizeSpreadsheetFormula（R4）。
-	f.SetCellValue(sheet, "A2", fmt.Sprintf("预测模型: %s", neutralizeSpreadsheetFormula(prediction.Model)))
+	f.SetCellValue(sheet, "A2", fmt.Sprintf("Prediction model: %s", neutralizeSpreadsheetFormula(prediction.Model)))
 	f.SetCellValue(sheet, "A3", fmt.Sprintf("置信度: %.2f%%", prediction.Confidence*100))
 	f.SetCellValue(sheet, "A4", fmt.Sprintf("生成时间: %s", prediction.GeneratedAt.Format("2006-01-02 15:04:05")))
 
@@ -297,7 +297,7 @@ func (s *ReportExportService) ExportPredictionToExcel(ctx context.Context, predi
 
 	var buf bytes.Buffer
 	if err := f.Write(&buf); err != nil {
-		return nil, "", fmt.Errorf("生成Excel失败: %w", err)
+		return nil, "", fmt.Errorf("Failed to generate Excel: %w", err)
 	}
 
 	filename := fmt.Sprintf("prediction_report_%s.xlsx", time.Now().Format("20060102_150405"))

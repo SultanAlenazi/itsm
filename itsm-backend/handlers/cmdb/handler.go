@@ -157,7 +157,7 @@ func (h *Handler) GetCapabilities(c *gin.Context) {
 	}
 	capability, err := h.svc.GetDiscoveryCapability(c.Request.Context(), tenantID)
 	if err != nil {
-		common.FailWithErr(c, err, "获取 CMDB 能力状态失败")
+		common.FailWithErr(c, err, "Failed to obtain CMDB capability status")
 		return
 	}
 	common.Success(c, &dto.CMDBCapabilitiesResponse{Items: []dto.CMDBCapabilityResponse{{
@@ -276,7 +276,7 @@ func (h *Handler) GetReconciliation(c *gin.Context) {
 
 	result, err := h.svc.GetReconciliation(c.Request.Context(), tenantID)
 	if err != nil {
-		common.FailWithErr(c, err, "获取对账信息失败")
+		common.FailWithErr(c, err, "Failed to obtain reconciliation information")
 		return
 	}
 
@@ -330,7 +330,7 @@ func (h *Handler) GetGovernanceReport(c *gin.Context) {
 
 	report, err := h.svc.GetGovernanceReport(c.Request.Context(), tenantID)
 	if err != nil {
-		common.RespondError(c, err, "获取治理报告失败")
+		common.RespondError(c, err, "Failed to obtain governance report")
 		return
 	}
 
@@ -375,13 +375,13 @@ func (h *Handler) ListCloudServices(c *gin.Context) {
 	// provider 过滤的唯一校验者是这里的 binding，不再是「任意字符串进精确匹配」。
 	var req dto.ListCloudSelectorRequest
 	if err := c.ShouldBindQuery(&req); err != nil {
-		common.ParamErrorWithErr(c, err, "请求参数错误")
+		common.ParamErrorWithErr(c, err, "Wrong request parameters")
 		return
 	}
 
 	list, err := h.svc.ListCloudServices(c.Request.Context(), tenantID, req.Provider)
 	if err != nil {
-		common.RespondError(c, err, "查询云服务列表失败")
+		common.RespondError(c, err, "Failed to query cloud service list")
 		return
 	}
 
@@ -438,7 +438,7 @@ func (h *Handler) CreateCloudService(c *gin.Context) {
 		return
 	}
 	if err := validateAttributeSchema(req.AttributeSchema); err != nil {
-		common.ParamErrorWithErr(c, err, "请求参数错误")
+		common.ParamErrorWithErr(c, err, "Wrong request parameters")
 		return
 	}
 	tenantID, ok := handlerctx.ResolveTenantID(c)
@@ -469,7 +469,7 @@ func (h *Handler) CreateCloudService(c *gin.Context) {
 	}
 	res, err := h.svc.CreateCloudService(c.Request.Context(), cs)
 	if err != nil {
-		common.RespondError(c, err, "创建云服务失败")
+		common.RespondError(c, err, "Failed to create cloud service")
 		return
 	}
 	common.Success(c, toCloudServiceDTO(res))
@@ -490,7 +490,7 @@ func validateAttributeSchema(schema map[string]interface{}) error {
 	for index, item := range fields {
 		fieldMap, ok := item.(map[string]interface{})
 		if !ok {
-			return fmt.Errorf("attribute_schema.fields[%d] 必须是对象", index)
+			return fmt.Errorf("attribute_schema.fields[%d] must be an object", index)
 		}
 		fieldType, _ := fieldMap["type"].(string)
 		fieldKey, _ := fieldMap["key"].(string)
@@ -499,18 +499,18 @@ func validateAttributeSchema(schema map[string]interface{}) error {
 			fieldLabel = label
 		}
 		if fieldType == "" {
-			return fmt.Errorf("attribute_schema.fields[%d]（%s）必须指定 type，且仅支持 select", index, fieldLabel)
+			return fmt.Errorf("attribute_schema.fields[%d] (%s) must specify type and only supports select", index, fieldLabel)
 		}
 		if fieldType != "select" {
-			return fmt.Errorf("attribute_schema.fields[%d]（%s）仅支持 type=select", index, fieldLabel)
+			return fmt.Errorf("attribute_schema.fields[%d] (%s) only supports type=select", index, fieldLabel)
 		}
 		rawOptions, ok := fieldMap["options"]
 		if !ok {
-			return fmt.Errorf("attribute_schema.fields[%d]（%s）必须提供 options", index, fieldLabel)
+			return fmt.Errorf("attribute_schema.fields[%d] (%s) must provide options", index, fieldLabel)
 		}
 		options, ok := rawOptions.([]interface{})
 		if !ok || len(options) == 0 {
-			return fmt.Errorf("attribute_schema.fields[%d]（%s）options 必须为非空数组", index, fieldLabel)
+			return fmt.Errorf("attribute_schema.fields[%d] (%s) options must be a non-empty array", index, fieldLabel)
 		}
 	}
 	return nil
@@ -537,13 +537,13 @@ func (h *Handler) ListCloudAccounts(c *gin.Context) {
 	}
 	var req dto.ListCloudSelectorRequest
 	if err := c.ShouldBindQuery(&req); err != nil {
-		common.ParamErrorWithErr(c, err, "请求参数错误")
+		common.ParamErrorWithErr(c, err, "Wrong request parameters")
 		return
 	}
 
 	list, err := h.svc.ListCloudAccounts(c.Request.Context(), tenantID, req.Provider)
 	if err != nil {
-		common.RespondError(c, err, "查询云账号列表失败")
+		common.RespondError(c, err, "Failed to query cloud account list")
 		return
 	}
 	items := make([]*dto.CloudAccountResponse, 0, len(list))
@@ -598,7 +598,7 @@ func (h *Handler) CreateCloudAccount(c *gin.Context) {
 		return
 	}
 	if err := validateTenantCredentialRef(req.CredentialRef, tenantID); err != nil {
-		common.ParamErrorWithErr(c, err, "请求参数错误")
+		common.ParamErrorWithErr(c, err, "Wrong request parameters")
 		return
 	}
 	isActive := true
@@ -616,7 +616,7 @@ func (h *Handler) CreateCloudAccount(c *gin.Context) {
 	}
 	res, err := h.svc.CreateCloudAccount(c.Request.Context(), ca)
 	if err != nil {
-		common.RespondError(c, err, "操作失败")
+		common.RespondError(c, err, "Operation failed")
 		return
 	}
 	common.Success(c, toCloudAccountDTO(res))
@@ -653,7 +653,7 @@ func (h *Handler) ListCloudResources(c *gin.Context) {
 	// 静默接受它会让两套命名继续共存。写错 serviceId 现在是 400，不再是解析失败当 0。
 	var req dto.ListCloudResourcesRequest
 	if err := c.ShouldBindQuery(&req); err != nil {
-		common.ParamErrorWithErr(c, err, "请求参数错误")
+		common.ParamErrorWithErr(c, err, "Wrong request parameters")
 		return
 	}
 
@@ -667,7 +667,7 @@ func (h *Handler) ListCloudResources(c *gin.Context) {
 		Search:         req.Search,
 	}, page, pageSize)
 	if err != nil {
-		common.RespondError(c, err, "查询云资源列表失败")
+		common.RespondError(c, err, "Failed to query cloud resource list")
 		return
 	}
 	items := make([]*dto.CloudResourceResponse, 0, len(list))
@@ -707,7 +707,7 @@ func (h *Handler) GetCloudService(c *gin.Context) {
 	}
 	result, err := h.svc.GetCloudService(c.Request.Context(), tenantID, id)
 	if err != nil {
-		common.RespondError(c, err, "操作失败")
+		common.RespondError(c, err, "Operation failed")
 		return
 	}
 	common.Success(c, &dto.CloudServiceResponse{
@@ -778,7 +778,7 @@ func (h *Handler) UpdateCloudService(c *gin.Context) {
 	}
 	result, err := h.svc.UpdateCloudService(c.Request.Context(), cs)
 	if err != nil {
-		common.RespondError(c, err, "操作失败")
+		common.RespondError(c, err, "Operation failed")
 		return
 	}
 	common.Success(c, &dto.CloudServiceResponse{
@@ -824,7 +824,7 @@ func (h *Handler) DeleteCloudService(c *gin.Context) {
 	}
 	err := h.svc.DeleteCloudService(c.Request.Context(), id, tenantID)
 	if err != nil {
-		common.RespondError(c, err, "操作失败")
+		common.RespondError(c, err, "Operation failed")
 		return
 	}
 	common.Success(c, nil)
@@ -854,7 +854,7 @@ func (h *Handler) GetCloudAccount(c *gin.Context) {
 	}
 	result, err := h.svc.GetCloudAccount(c.Request.Context(), tenantID, id)
 	if err != nil {
-		common.RespondError(c, err, "操作失败")
+		common.RespondError(c, err, "Operation failed")
 		return
 	}
 	common.Success(c, &dto.CloudAccountResponse{
@@ -902,13 +902,13 @@ func (h *Handler) UpdateCloudAccount(c *gin.Context) {
 	}
 	existing, err := h.svc.GetCloudAccount(c.Request.Context(), tenantID, id)
 	if err != nil {
-		common.RespondError(c, err, "操作失败")
+		common.RespondError(c, err, "Operation failed")
 		return
 	}
 	credentialRef := existing.CredentialRef
 	if req.CredentialRef != nil {
 		if err := validateTenantCredentialRef(*req.CredentialRef, tenantID); err != nil {
-			common.ParamErrorWithErr(c, err, "请求参数错误")
+			common.ParamErrorWithErr(c, err, "Wrong request parameters")
 			return
 		}
 		credentialRef = *req.CredentialRef
@@ -937,7 +937,7 @@ func (h *Handler) UpdateCloudAccount(c *gin.Context) {
 	}
 	result, err := h.svc.UpdateCloudAccount(c.Request.Context(), ca)
 	if err != nil {
-		common.RespondError(c, err, "操作失败")
+		common.RespondError(c, err, "Operation failed")
 		return
 	}
 	common.Success(c, &dto.CloudAccountResponse{
@@ -979,7 +979,7 @@ func (h *Handler) DeleteCloudAccount(c *gin.Context) {
 
 	err := h.svc.DeleteCloudAccount(c.Request.Context(), id, tenantID)
 	if err != nil {
-		common.RespondError(c, err, "操作失败")
+		common.RespondError(c, err, "Operation failed")
 		return
 	}
 	common.Success(c, nil)
@@ -1010,7 +1010,7 @@ func (h *Handler) GetCloudResource(c *gin.Context) {
 
 	result, err := h.svc.GetCloudResource(c.Request.Context(), tenantID, id)
 	if err != nil {
-		common.RespondError(c, err, "操作失败")
+		common.RespondError(c, err, "Operation failed")
 		return
 	}
 	common.Success(c, toCloudResourceDTO(result))
@@ -1059,7 +1059,7 @@ func (h *Handler) CreateCloudResource(c *gin.Context) {
 	}
 	result, err := h.svc.CreateCloudResource(c.Request.Context(), cr)
 	if err != nil {
-		common.RespondError(c, err, "操作失败")
+		common.RespondError(c, err, "Operation failed")
 		return
 	}
 	common.Success(c, toCloudResourceDTO(result))
@@ -1111,7 +1111,7 @@ func (h *Handler) UpdateCloudResource(c *gin.Context) {
 	}
 	result, err := h.svc.UpdateCloudResource(c.Request.Context(), cr)
 	if err != nil {
-		common.RespondError(c, err, "操作失败")
+		common.RespondError(c, err, "Operation failed")
 		return
 	}
 	common.Success(c, toCloudResourceDTO(result))
@@ -1142,7 +1142,7 @@ func (h *Handler) DeleteCloudResource(c *gin.Context) {
 
 	err := h.svc.DeleteCloudResource(c.Request.Context(), id, tenantID)
 	if err != nil {
-		common.RespondError(c, err, "操作失败")
+		common.RespondError(c, err, "Operation failed")
 		return
 	}
 	common.Success(c, nil)
@@ -1156,7 +1156,7 @@ func (h *Handler) ListDiscoverySources(c *gin.Context) {
 	}
 	list, err := h.svc.ListDiscoverySources(c.Request.Context(), tenantID)
 	if err != nil {
-		common.RespondError(c, err, "操作失败")
+		common.RespondError(c, err, "Operation failed")
 		return
 	}
 	resp := make([]*dto.DiscoverySourceResponse, 0, len(list))
@@ -1210,7 +1210,7 @@ func (h *Handler) CreateDiscoverySource(c *gin.Context) {
 	}
 	res, err := h.svc.CreateDiscoverySource(c.Request.Context(), ds)
 	if err != nil {
-		common.RespondError(c, err, "操作失败")
+		common.RespondError(c, err, "Operation failed")
 		return
 	}
 	nextRunAt, scheduleErr := schedulePreview(res.Schedule, time.Now(), h.locationFor(c.Request.Context(), tenantID))
@@ -1270,7 +1270,7 @@ func toDiscoveryJobDetailResponse(job *DiscoveryJob) *dto.DiscoveryJobDetailResp
 // Discovery jobs —— 云发现任务面（创建入队 / 列表 / 详情 / 取消 / 重试）。
 func (h *Handler) CreateDiscoveryJob(c *gin.Context) {
 	if h.svc == nil {
-		common.Fail(c, common.ServiceUnavailableCode, "CMDB 服务未装配")
+		common.Fail(c, common.ServiceUnavailableCode, "CMDB service not mounted")
 		return
 	}
 	var req dto.DiscoveryJobRequest
@@ -1285,7 +1285,7 @@ func (h *Handler) CreateDiscoveryJob(c *gin.Context) {
 	userID := c.GetInt("user_id")
 	job, err := h.svc.CreateDiscoveryJob(c.Request.Context(), tenantID, userID, &req)
 	if err != nil {
-		common.RespondError(c, err, "创建发现任务失败")
+		common.RespondError(c, err, "Failed to create discovery task")
 		return
 	}
 	common.Success(c, toDiscoveryJobDetailResponse(job))
@@ -1293,7 +1293,7 @@ func (h *Handler) CreateDiscoveryJob(c *gin.Context) {
 
 func (h *Handler) ListDiscoveryJobs(c *gin.Context) {
 	if h.svc == nil {
-		common.Fail(c, common.ServiceUnavailableCode, "CMDB 服务未装配")
+		common.Fail(c, common.ServiceUnavailableCode, "CMDB service not mounted")
 		return
 	}
 	tenantID, ok := handlerctx.ResolveTenantID(c)
@@ -1304,7 +1304,7 @@ func (h *Handler) ListDiscoveryJobs(c *gin.Context) {
 	status := c.Query("status")
 	jobs, total, err := h.svc.ListDiscoveryJobs(c.Request.Context(), tenantID, status, pg.Page, pg.PageSize)
 	if err != nil {
-		common.RespondError(c, err, "查询发现任务失败")
+		common.RespondError(c, err, "Query discovery task failed")
 		return
 	}
 	items := make([]*dto.DiscoveryJobDetailResponse, 0, len(jobs))
@@ -1316,7 +1316,7 @@ func (h *Handler) ListDiscoveryJobs(c *gin.Context) {
 
 func (h *Handler) GetDiscoveryJobDetail(c *gin.Context) {
 	if h.svc == nil {
-		common.Fail(c, common.ServiceUnavailableCode, "CMDB 服务未装配")
+		common.Fail(c, common.ServiceUnavailableCode, "CMDB service not mounted")
 		return
 	}
 	tenantID, ok := handlerctx.ResolveTenantID(c)
@@ -1325,12 +1325,12 @@ func (h *Handler) GetDiscoveryJobDetail(c *gin.Context) {
 	}
 	id, err := strconv.Atoi(c.Param("id"))
 	if err != nil || id <= 0 {
-		common.ParamError(c, "id 参数非法")
+		common.ParamError(c, "The id parameter is illegal")
 		return
 	}
 	job, err := h.svc.GetDiscoveryJob(c.Request.Context(), tenantID, id)
 	if err != nil {
-		common.RespondError(c, err, "查询发现任务失败")
+		common.RespondError(c, err, "Query discovery task failed")
 		return
 	}
 	common.Success(c, toDiscoveryJobDetailResponse(job))
@@ -1338,7 +1338,7 @@ func (h *Handler) GetDiscoveryJobDetail(c *gin.Context) {
 
 func (h *Handler) CancelDiscoveryJob(c *gin.Context) {
 	if h.svc == nil {
-		common.Fail(c, common.ServiceUnavailableCode, "CMDB 服务未装配")
+		common.Fail(c, common.ServiceUnavailableCode, "CMDB service not mounted")
 		return
 	}
 	tenantID, ok := handlerctx.ResolveTenantID(c)
@@ -1347,12 +1347,12 @@ func (h *Handler) CancelDiscoveryJob(c *gin.Context) {
 	}
 	id, err := strconv.Atoi(c.Param("id"))
 	if err != nil || id <= 0 {
-		common.ParamError(c, "id 参数非法")
+		common.ParamError(c, "The id parameter is illegal")
 		return
 	}
 	job, err := h.svc.CancelDiscoveryJob(c.Request.Context(), tenantID, id)
 	if err != nil {
-		common.RespondError(c, err, "取消发现任务失败")
+		common.RespondError(c, err, "Failed to cancel discovery task")
 		return
 	}
 	common.Success(c, toDiscoveryJobDetailResponse(job))
@@ -1360,7 +1360,7 @@ func (h *Handler) CancelDiscoveryJob(c *gin.Context) {
 
 func (h *Handler) RetryDiscoveryJob(c *gin.Context) {
 	if h.svc == nil {
-		common.Fail(c, common.ServiceUnavailableCode, "CMDB 服务未装配")
+		common.Fail(c, common.ServiceUnavailableCode, "CMDB service not mounted")
 		return
 	}
 	tenantID, ok := handlerctx.ResolveTenantID(c)
@@ -1369,12 +1369,12 @@ func (h *Handler) RetryDiscoveryJob(c *gin.Context) {
 	}
 	id, err := strconv.Atoi(c.Param("id"))
 	if err != nil || id <= 0 {
-		common.ParamError(c, "id 参数非法")
+		common.ParamError(c, "The id parameter is illegal")
 		return
 	}
 	job, err := h.svc.RetryDiscoveryJob(c.Request.Context(), tenantID, c.GetInt("user_id"), id)
 	if err != nil {
-		common.RespondError(c, err, "重试发现任务失败")
+		common.RespondError(c, err, "Retry discovery task failed")
 		return
 	}
 	common.Success(c, toDiscoveryJobDetailResponse(job))
@@ -1388,7 +1388,7 @@ func (h *Handler) ListDiscoveryResults(c *gin.Context) {
 	jobID, _ := common.ParsePositiveIDFromQuery(c, "job_id")
 	list, err := h.svc.ListDiscoveryResults(c.Request.Context(), tenantID, jobID)
 	if err != nil {
-		common.RespondError(c, err, "操作失败")
+		common.RespondError(c, err, "Operation failed")
 		return
 	}
 	resp := make([]*dto.DiscoveryResultResponse, 0, len(list))
@@ -1417,7 +1417,7 @@ func (h *Handler) ListDiscoveryResults(c *gin.Context) {
 // 此前没有任何写入面，差异永远停在「待人工确认」。
 func (h *Handler) ApplyDiscoveryResult(c *gin.Context) {
 	if h.svc == nil {
-		common.Fail(c, common.ServiceUnavailableCode, "CMDB 服务未装配")
+		common.Fail(c, common.ServiceUnavailableCode, "CMDB service not mounted")
 		return
 	}
 	tenantID, ok := handlerctx.ResolveTenantID(c)
@@ -1426,12 +1426,12 @@ func (h *Handler) ApplyDiscoveryResult(c *gin.Context) {
 	}
 	id, err := strconv.Atoi(c.Param("id"))
 	if err != nil || id <= 0 {
-		common.ParamError(c, "id 参数非法")
+		common.ParamError(c, "The id parameter is illegal")
 		return
 	}
 	result, err := h.svc.ApplyDiscoveryResult(c.Request.Context(), tenantID, c.GetInt("user_id"), id)
 	if err != nil {
-		common.RespondError(c, err, "应用发现差异失败")
+		common.RespondError(c, err, "Apply failed to find differences")
 		return
 	}
 	common.Success(c, toDiscoveryResultResponse(result))
@@ -1439,7 +1439,7 @@ func (h *Handler) ApplyDiscoveryResult(c *gin.Context) {
 
 func (h *Handler) RejectDiscoveryResult(c *gin.Context) {
 	if h.svc == nil {
-		common.Fail(c, common.ServiceUnavailableCode, "CMDB 服务未装配")
+		common.Fail(c, common.ServiceUnavailableCode, "CMDB service not mounted")
 		return
 	}
 	tenantID, ok := handlerctx.ResolveTenantID(c)
@@ -1448,7 +1448,7 @@ func (h *Handler) RejectDiscoveryResult(c *gin.Context) {
 	}
 	id, err := strconv.Atoi(c.Param("id"))
 	if err != nil || id <= 0 {
-		common.ParamError(c, "id 参数非法")
+		common.ParamError(c, "The id parameter is illegal")
 		return
 	}
 	var req dto.DiscoveryResultRejectRequest
@@ -1461,7 +1461,7 @@ func (h *Handler) RejectDiscoveryResult(c *gin.Context) {
 	}
 	result, err := h.svc.RejectDiscoveryResult(c.Request.Context(), tenantID, c.GetInt("user_id"), id, req.Reason)
 	if err != nil {
-		common.RespondError(c, err, "驳回发现差异失败")
+		common.RespondError(c, err, "Rejection failed to find differences")
 		return
 	}
 	common.Success(c, toDiscoveryResultResponse(result))
@@ -1505,7 +1505,7 @@ func toDiscoveryResultResponse(item *DiscoveryResult) *dto.DiscoveryResultRespon
 // @Router /api/v1/cmdb/discovery/pending-resources [get]
 func (h *Handler) ListPendingDiscoveryResources(c *gin.Context) {
 	if h.svc == nil {
-		common.Fail(c, common.ServiceUnavailableCode, "CMDB 服务未装配")
+		common.Fail(c, common.ServiceUnavailableCode, "CMDB service not mounted")
 		return
 	}
 	tenantID, ok := handlerctx.ResolveTenantID(c)
@@ -1515,10 +1515,10 @@ func (h *Handler) ListPendingDiscoveryResources(c *gin.Context) {
 	pending, err := h.svc.ListPendingDiscoveryResources(c.Request.Context(), tenantID)
 	if err != nil {
 		if errors.Is(err, ErrDiscoveryProjectorNotWired) {
-			common.Fail(c, common.ServiceUnavailableCode, "人工补全不可用：发现回写服务未装配")
+			common.Fail(c, common.ServiceUnavailableCode, "Manual completion not available: Writeback service found not assembled")
 			return
 		}
-		common.RespondError(c, err, "查询待补全资源失败")
+		common.RespondError(c, err, "Failed to query resources to be completed")
 		return
 	}
 
@@ -1564,7 +1564,7 @@ func (h *Handler) ListPendingDiscoveryResources(c *gin.Context) {
 // @Router /api/v1/cmdb/discovery/pending-resources/{id}/register [post]
 func (h *Handler) RegisterPendingDiscoveryResource(c *gin.Context) {
 	if h.svc == nil {
-		common.Fail(c, common.ServiceUnavailableCode, "CMDB 服务未装配")
+		common.Fail(c, common.ServiceUnavailableCode, "CMDB service not mounted")
 		return
 	}
 	tenantID, ok := handlerctx.ResolveTenantID(c)
@@ -1573,14 +1573,14 @@ func (h *Handler) RegisterPendingDiscoveryResource(c *gin.Context) {
 	}
 	id, err := strconv.Atoi(c.Param("id"))
 	if err != nil || id <= 0 {
-		common.ParamError(c, "id 参数非法")
+		common.ParamError(c, "The id parameter is illegal")
 		return
 	}
 	var req dto.RegisterPendingDiscoveryResourceRequest
 	// 允许空 body：全部沿用标签推断值，只对「已链接/未映射」等情况做裁定。
 	if c.Request.ContentLength > 0 {
 		if err := c.ShouldBindJSON(&req); err != nil {
-			common.ParamErrorWithErr(c, err, "请求参数错误")
+			common.ParamErrorWithErr(c, err, "Wrong request parameters")
 			return
 		}
 	}
@@ -1592,10 +1592,10 @@ func (h *Handler) RegisterPendingDiscoveryResource(c *gin.Context) {
 	})
 	if err != nil {
 		if errors.Is(err, ErrDiscoveryProjectorNotWired) {
-			common.Fail(c, common.ServiceUnavailableCode, "人工补全不可用：发现回写服务未装配")
+			common.Fail(c, common.ServiceUnavailableCode, "Manual completion not available: Writeback service found not assembled")
 			return
 		}
-		common.RespondError(c, err, "人工补全建账失败")
+		common.RespondError(c, err, "Manual completion of account creation failed")
 		return
 	}
 	common.Success(c, created)

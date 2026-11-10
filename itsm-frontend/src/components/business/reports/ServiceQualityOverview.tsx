@@ -35,9 +35,9 @@ import type { ServiceQualityReport } from '@/app/(main)/dashboard/types/dashboar
 const { Text } = Typography;
 
 const WINDOW_OPTIONS = [
-  { label: '近 30 天', value: 30 },
-  { label: '近 60 天', value: 60 },
-  { label: '近 90 天', value: 90 },
+  { label: "Last 30 Days", value: 30 },
+  { label: "Last 60 Days", value: 60 },
+  { label: "Last 90 Days", value: 90 },
 ];
 
 // 块缺省（后端对应域未装配）时如实标注「未接入」，不用全零冒充统计结果。
@@ -49,10 +49,10 @@ function MissingBlock({ label }: { label: string }) {
         image={Empty.PRESENTED_IMAGE_SIMPLE}
         description={
           <Text type="secondary">
-            该统计块未接入
+            This statistics block is not connected
             <br />
             <Text type="secondary" style={{ fontSize: 12 }}>
-              后端对应域未装配时此块缺省，属于显式降级
+              This block is unavailable because its backend domain is not configured.
             </Text>
           </Text>
         }
@@ -77,7 +77,7 @@ function StatusTable({
       dataSource={rows}
       columns={[
         { title: nameKey, dataIndex: 'name', key: 'name' },
-        { title: '数量', dataIndex: 'count', key: 'count', width: 90, align: 'right' },
+        { title: "Count", dataIndex: 'count', key: 'count', width: 90, align: 'right' },
       ]}
     />
   );
@@ -95,17 +95,17 @@ export default function ServiceQualityOverview() {
 
   return (
     <Card
-      title="服务质量总览"
+      title="Service Quality Overview"
       extra={
         <div className="flex items-center gap-3">
           {report && (
-            <Tooltip title={`口径版本 ${report.metricVersion}：任何指标的计算语义变化都会递增版本，跨期对比以此为准`}>
-              <Tag color="blue">口径 v{report.metricVersion}</Tag>
+            <Tooltip title={`Metric version ${report.metricVersion}: calculation changes increment this version; use it when comparing periods`}>
+              <Tag color="blue">Metric v{report.metricVersion}</Tag>
             </Tooltip>
           )}
           {report && (
             <Tag color={report.scope === 'tenant' ? 'geekblue' : 'green'}>
-              {report.scope === 'tenant' ? '全租户口径' : '本人口径'}
+              {report.scope === 'tenant' ? "All tenant records" : "Own records"}
             </Tag>
           )}
           <Segmented options={WINDOW_OPTIONS} value={days} onChange={value => setDays(value as number)} />
@@ -119,11 +119,11 @@ export default function ServiceQualityOverview() {
         <Alert
           type="error"
           showIcon
-          title="服务质量总览加载失败"
-          description="统计服务暂时不可用，稍后可以重试。"
+          title="Failed to load service quality overview"
+          description="Statistics are temporarily unavailable. Please try again later."
           action={
             <Button size="small" icon={<ReloadOutlined />} onClick={() => qualityQuery.refetch()}>
-              重试
+              Retry
             </Button>
           }
         />
@@ -144,7 +144,7 @@ export default function ServiceQualityOverview() {
                       type={metric.trend === 'up' ? 'danger' : metric.trend === 'down' ? 'success' : 'secondary'}
                       style={{ fontSize: 12 }}
                     >
-                      较上期 {metric.trend === 'down' ? '↓' : '↑'} {Math.abs(metric.change)}
+                      Compared with previous period {metric.trend === 'down' ? '↓' : '↑'} {Math.abs(metric.change)}
                       {metric.unit}
                     </Text>
                   )}
@@ -157,13 +157,13 @@ export default function ServiceQualityOverview() {
             <Row gutter={[12, 12]}>
               <Col xs={12} md={6}>
                 <Card size="small">
-                  <Statistic title="SLA 整体合规率" value={report.sla.complianceRate} suffix="%" precision={1} />
+                  <Statistic title="Overall SLA Compliance" value={report.sla.complianceRate} suffix="%" precision={1} />
                 </Card>
               </Col>
               <Col xs={12} md={6}>
                 <Card size="small">
                   <Statistic
-                    title="响应时限达成率"
+                    title="Response Deadline Compliance"
                     value={report.sla.responseTimeCompliance}
                     suffix="%"
                     precision={1}
@@ -173,7 +173,7 @@ export default function ServiceQualityOverview() {
               <Col xs={12} md={6}>
                 <Card size="small">
                   <Statistic
-                    title="解决时限达成率"
+                    title="Resolution Deadline Compliance"
                     value={report.sla.resolutionTimeCompliance}
                     suffix="%"
                     precision={1}
@@ -183,9 +183,9 @@ export default function ServiceQualityOverview() {
               <Col xs={12} md={6}>
                 <Card size="small">
                   <Statistic
-                    title="24 小时内到期"
+                    title="Due Within 24 Hours"
                     value={report.sla.atRiskTickets}
-                    suffix="张"
+                    suffix="tickets"
                     styles={{ content: report.sla.atRiskTickets > 0 ? { color: '#faad14' } : undefined }}
                   />
                 </Card>
@@ -195,7 +195,7 @@ export default function ServiceQualityOverview() {
 
           <Row gutter={[12, 12]}>
             <Col xs={24} lg={14}>
-              <Card size="small" title="工单趋势（新建 / 已解决）">
+              <Card size="small" title="Ticket Trends (Created / Resolved)">
                 <ResponsiveContainer width="100%" height={220}>
                   <LineChart data={report.ticketTrend}>
                     <CartesianGrid strokeDasharray="3 3" />
@@ -203,21 +203,21 @@ export default function ServiceQualityOverview() {
                     <YAxis allowDecimals={false} tick={{ fontSize: 11 }} />
                     <ChartTooltip />
                     <Legend />
-                    <Line type="monotone" dataKey="newTickets" name="新建" stroke="#1677ff" dot={false} />
-                    <Line type="monotone" dataKey="completedTickets" name="已解决" stroke="#52c41a" dot={false} />
+                    <Line type="monotone" dataKey="newTickets" name="Created" stroke="#1677ff" dot={false} />
+                    <Line type="monotone" dataKey="completedTickets" name="Resolved" stroke="#52c41a" dot={false} />
                   </LineChart>
                 </ResponsiveContainer>
               </Card>
             </Col>
             <Col xs={24} lg={10}>
-              <Card size="small" title="事件分布" className="h-full">
+              <Card size="small" title="Incident Distribution" className="h-full">
                 {report.incidentDistribution.length > 0 ? (
                   <StatusTable
-                    nameKey="事件分类"
+                    nameKey="Incident Category"
                     rows={report.incidentDistribution.map(item => ({ name: item.category, count: item.count }))}
                   />
                 ) : (
-                  <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description="窗口内没有事件" />
+                  <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description="No incidents in this period" />
                 )}
               </Card>
             </Col>
@@ -226,36 +226,36 @@ export default function ServiceQualityOverview() {
           <Row gutter={[12, 12]}>
             <Col xs={24} lg={8}>
               {report.ticketStats ? (
-                <Card size="small" title="工单统计">
-                  <Statistic title="工单总数" value={report.ticketStats.total} />
+                <Card size="small" title="Ticket Statistics">
+                  <Statistic title="Total Tickets" value={report.ticketStats.total} />
                   <div className="mt-2">
                     <StatusTable
-                      nameKey="状态"
+                      nameKey="Status"
                       rows={report.ticketStats.statusGroups.map(g => ({ name: g.status, count: g.count }))}
                     />
                   </div>
                 </Card>
               ) : (
-                <MissingBlock label="工单统计" />
+                <MissingBlock label="Ticket Statistics" />
               )}
             </Col>
             <Col xs={24} lg={8}>
               {report.problemStats ? (
-                <Card size="small" title="问题统计">
+                <Card size="small" title="Problem Statistics">
                   <Row gutter={8}>
                     <Col span={8}>
-                      <Statistic title="总数" value={report.problemStats.total} />
+                      <Statistic title="Total" value={report.problemStats.total} />
                     </Col>
                     <Col span={8}>
                       <Statistic
-                        title="待处理"
+                        title="Open"
                         value={report.problemStats.open + report.problemStats.inProgress}
                         styles={{ content: { color: '#faad14' } }}
                       />
                     </Col>
                     <Col span={8}>
                       <Statistic
-                        title="高优先级"
+                        title="High Priority"
                         value={report.problemStats.highPriority}
                         styles={{ content: { color: '#ff4d4f' } }}
                       />
@@ -263,32 +263,32 @@ export default function ServiceQualityOverview() {
                   </Row>
                   <div className="mt-2">
                     <StatusTable
-                      nameKey="状态"
+                      nameKey="Status"
                       rows={report.problemStats.byStatus.map(g => ({ name: g.status, count: g.count }))}
                     />
                   </div>
                 </Card>
               ) : (
-                <MissingBlock label="问题统计" />
+                <MissingBlock label="Problem Statistics" />
               )}
             </Col>
             <Col xs={24} lg={8}>
               {report.changeStats ? (
-                <Card size="small" title="变更统计">
+                <Card size="small" title="Change Statistics">
                   <Row gutter={8}>
                     <Col span={8}>
-                      <Statistic title="总数" value={report.changeStats.total} />
+                      <Statistic title="Total" value={report.changeStats.total} />
                     </Col>
                     <Col span={8}>
                       <Statistic
-                        title="待审批"
+                        title="Awaiting Approval"
                         value={report.changeStats.pending}
                         styles={{ content: { color: '#faad14' } }}
                       />
                     </Col>
                     <Col span={8}>
                       <Statistic
-                        title="实施失败"
+                        title="Implementation Failed"
                         value={report.changeStats.failed}
                         styles={{ content: { color: '#ff4d4f' } }}
                       />
@@ -296,19 +296,19 @@ export default function ServiceQualityOverview() {
                   </Row>
                   <div className="mt-2">
                     <StatusTable
-                      nameKey="类型"
+                      nameKey="Type"
                       rows={report.changeStats.byType.map(g => ({ name: String(g.type), count: g.count }))}
                     />
                   </div>
                 </Card>
               ) : (
-                <MissingBlock label="变更统计" />
+                <MissingBlock label="Change Statistics" />
               )}
             </Col>
           </Row>
 
           {report.satisfaction.length > 0 && (
-            <Card size="small" title="满意度（按月）">
+            <Card size="small" title="Satisfaction by Month">
               <Row gutter={[12, 12]}>
                 {report.satisfaction.map(item => (
                   <Col key={item.month} xs={12} md={6}>
@@ -322,7 +322,7 @@ export default function ServiceQualityOverview() {
                       />
                       <div>
                         <Text type="secondary" style={{ fontSize: 12 }}>
-                          {item.responses} 份评价
+                          {item.responses} ratings
                         </Text>
                       </div>
                     </div>

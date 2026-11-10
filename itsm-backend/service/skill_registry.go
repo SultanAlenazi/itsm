@@ -30,7 +30,7 @@ import (
 type SkillRegistry struct {
 	mu       sync.RWMutex
 	skills   map[string]Skill
-	owners   map[string]int                // code -> 创建租户 ID；0 = 内置/全局
+	owners   map[string]int                 // code -> 创建租户 ID；0 = 内置/全局
 	tagIndex map[string]map[string]struct{} // tag -> codes 集合
 }
 
@@ -291,20 +291,20 @@ func (r *SkillRegistry) Count() int {
 // 与 SkillManifest 的区别：SkillEntry 折叠了 Code/Name/Metrics 等从 Skill
 // 接口直接派生出的字段，方便前端直接渲染而不必再下钻 Manifest。
 type SkillEntry struct {
-	Code            string        `json:"code"`
-	Name            string        `json:"name"`
-	Version         string        `json:"version"`
-	Title           string        `json:"title"`
-	Provider        string        `json:"provider"`
-	Description     string        `json:"description"`
-	Category        string        `json:"category"` // ga / pilot / experimental
-	Tags            []string      `json:"tags"`
-	Capabilities    []string      `json:"capabilities"`
-	RequiredPerms   []string      `json:"requiredPermissions"`
-	Author          string        `json:"author,omitempty"`
-	IsOfficial      bool          `json:"isOfficial"`
-	Checksum        string        `json:"checksum,omitempty"`
-	IsBuiltin       bool          `json:"isBuiltin"`
+	Code          string   `json:"code"`
+	Name          string   `json:"name"`
+	Version       string   `json:"version"`
+	Title         string   `json:"title"`
+	Provider      string   `json:"provider"`
+	Description   string   `json:"description"`
+	Category      string   `json:"category"` // ga / pilot / experimental
+	Tags          []string `json:"tags"`
+	Capabilities  []string `json:"capabilities"`
+	RequiredPerms []string `json:"requiredPermissions"`
+	Author        string   `json:"author,omitempty"`
+	IsOfficial    bool     `json:"isOfficial"`
+	Checksum      string   `json:"checksum,omitempty"`
+	IsBuiltin     bool     `json:"isBuiltin"`
 	// TenantID 是技能归属租户：0 表示内置/全局技能，>0 表示该租户自定义技能。
 	// 管理端据此区分「平台提供」与「本租户注册」。
 	TenantID        int           `json:"tenantId"`
