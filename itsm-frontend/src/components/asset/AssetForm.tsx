@@ -55,7 +55,7 @@ const formRules = {
 const fieldHelps = {
   assetNumber: 'Format: ASSET-001',
   assetName: 'Friendly name of the asset',
-  description: 'Detailed description of the asset’s purpose and characteristics',
+  description: 'Detailed description of the asset purpose and characteristics',
   assetType: 'Select the main type of asset',
   category: 'Used for sorting and filtering',
   serialNumber: 'Unique identifier provided by the manufacturer',

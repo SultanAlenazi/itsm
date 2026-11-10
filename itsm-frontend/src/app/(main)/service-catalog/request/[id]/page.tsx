@@ -235,7 +235,7 @@ export default function ServiceCatalogRequestPage() {
               <Input disabled placeholder="Current logged in user" />
             </Form.Item>
             <Form.Item name='requesterEmail' label="Contact email">
-              <Input disabled placeholder="Current user’s email address" />
+              <Input disabled placeholder="Email address of the current user" />
             </Form.Item>
           </div>
           <Form.Item

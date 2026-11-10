@@ -100,7 +100,7 @@ func TestApprovalBridge_TriggeredByFallbackDoesNotDeadlock(t *testing.T) {
 		fmt.Sprintf("change:%d", c.ID), creatorID, "Activity_CABApproval", "CAB审批")
 	_, err = entClient.ProcessTask.UpdateOneID(taskID).
 		SetTaskVariables(map[string]interface{}{
-			"taskPurpose":     "approval",
+			"taskPurpose":      "approval",
 			"assignmentSource": "triggered_by",
 		}).
 		Save(ctx)

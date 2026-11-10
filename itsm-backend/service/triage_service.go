@@ -136,7 +136,6 @@ func guidanceResultDegraded(r *GuidanceTriageResponse) bool {
 	return r.Degraded || isDegradedGuidanceMethod(r.Method)
 }
 
-
 // TriageService provides LLM-powered ticket triage and classification
 type TriageService struct {
 	gateway          *LLMGateway

@@ -59,7 +59,7 @@ export default function ProblemEditPage() {
           impact: data.impact,
         });
         if (rawCategory && !safeCategory) {
-          message.warning(`Original category “${rawCategory}” is not in the current enumeration, please select again`);
+          message.warning(`Original category "${rawCategory}" is not in the current enumeration, please select again`);
         }
       } catch (error) {
         message.error(t('problems.getFailed'));

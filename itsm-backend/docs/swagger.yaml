@@ -1927,6 +1927,11 @@ definitions:
       cloudZone:
         type: string
       criticality:
+        enum:
+        - low
+        - medium
+        - high
+        - critical
         type: string
       description:
         type: string
@@ -1963,6 +1968,12 @@ definitions:
       source:
         type: string
       status:
+        enum:
+        - active
+        - inactive
+        - maintenance
+        - retired
+        - decommissioned
         type: string
       tenantId:
         type: integer
@@ -2081,7 +2092,11 @@ definitions:
         description: 变更描述
         type: string
       impactScope:
-        description: '影响范围: low, medium, high'
+        description: 影响范围
+        enum:
+        - low
+        - medium
+        - high
         type: string
       implementationPlan:
         description: 实施计划
@@ -2096,7 +2111,12 @@ definitions:
         description: 计划开始时间
         type: string
       priority:
-        description: '优先级: low, medium, high, critical'
+        description: 优先级
+        enum:
+        - low
+        - medium
+        - high
+        - critical
         type: string
       relatedTickets:
         description: 相关工单编号
@@ -2104,7 +2124,11 @@ definitions:
           type: string
         type: array
       riskLevel:
-        description: '风险等级: low, medium, high'
+        description: 风险等级
+        enum:
+        - low
+        - medium
+        - high
         type: string
       rollbackPlan:
         description: 回滚计划
@@ -2113,7 +2137,11 @@ definitions:
         description: 变更标题
         type: string
       type:
-        description: '变更类型: normal, standard, emergency'
+        description: 变更类型
+        enum:
+        - normal
+        - standard
+        - emergency
         type: string
     required:
     - title
@@ -2361,6 +2389,11 @@ definitions:
         description: 影响范围
         type: string
       priority:
+        enum:
+        - low
+        - medium
+        - high
+        - critical
         type: string
       rootCause:
         type: string
@@ -2560,11 +2593,14 @@ definitions:
       expiresAt:
         description: 下载链接过期时间
         type: string
+      exportLimit:
+        description: 单次导出上限；用于与页面 COUNT 对账
+        type: integer
       fileSize:
         description: 文件大小（字节）
         type: integer
       fileUrl:
-        description: 导出文件下载地址
+        description: 下载端点 URL（completed 后才有值；绝不回传服务器绝对路径）
         type: string
       status:
         description: 任务状态：pending processing completed failed
@@ -2573,8 +2609,11 @@ definitions:
         description: 导出任务ID
         type: string
       totalCount:
-        description: 导出的CI数量
+        description: 实际写入文件的 CI 数量
         type: integer
+      truncated:
+        description: 命中上限：文件可能未包含全部符合条件的数据
+        type: boolean
     type: object
   dto.GenerateBPMNRequest:
     properties:
@@ -3137,6 +3176,11 @@ definitions:
         $ref: '#/definitions/dto.KnowledgeFreshness'
       id:
         type: integer
+      isPublished:
+        description: |-
+          IsPublished 与 Status 同源，但显式透出布尔值，避免 API 消费者靠字符串
+          反推可见性（历史响应里该字段恒为 null）。
+        type: boolean
       lastReviewedAt:
         type: string
       reviewIntervalDays:
@@ -4252,6 +4296,11 @@ definitions:
       cloudZone:
         type: string
       criticality:
+        enum:
+        - low
+        - medium
+        - high
+        - critical
         type: string
       description:
         type: string
@@ -4281,6 +4330,12 @@ definitions:
       source:
         type: string
       status:
+        enum:
+        - active
+        - inactive
+        - maintenance
+        - retired
+        - decommissioned
         type: string
       vendor:
         type: string
@@ -4375,6 +4430,10 @@ definitions:
         allOf:
         - $ref: '#/definitions/dto.ChangeImpact'
         description: 影响范围
+        enum:
+        - low
+        - medium
+        - high
       implementationPlan:
         description: 实施计划
         type: string
@@ -4391,6 +4450,11 @@ definitions:
         allOf:
         - $ref: '#/definitions/dto.ChangePriority'
         description: 优先级
+        enum:
+        - low
+        - medium
+        - high
+        - critical
       relatedTickets:
         description: 相关工单
         items:
@@ -4400,6 +4464,10 @@ definitions:
         allOf:
         - $ref: '#/definitions/dto.ChangeRisk'
         description: 风险等级
+        enum:
+        - low
+        - medium
+        - high
       rollbackPlan:
         description: 回滚计划
         type: string
@@ -4410,6 +4478,10 @@ definitions:
         allOf:
         - $ref: '#/definitions/dto.ChangeType'
         description: 变更类型
+        enum:
+        - normal
+        - standard
+        - emergency
     type: object
   dto.UpdateCloudResourceRequest:
     properties:
@@ -4532,6 +4604,11 @@ definitions:
       impact:
         type: string
       priority:
+        enum:
+        - low
+        - medium
+        - high
+        - critical
         type: string
       rootCause:
         type: string
@@ -4822,15 +4899,6 @@ definitions:
       timeRange:
         type: string
     type: object
-  handlers.SLAData:
-    properties:
-      actual:
-        type: number
-      service:
-        type: string
-      target:
-        type: number
-    type: object
   handlers.SatisfactionData:
     properties:
       month:
@@ -5070,6 +5138,10 @@ definitions:
     type: object
   service.ServiceQualityReport:
     properties:
+      changeStats:
+        allOf:
+        - $ref: '#/definitions/dto.ChangeStatsResponse'
+        description: change 域未装配时缺省
       generatedAt:
         type: string
       incidentDistribution:
@@ -5086,6 +5158,10 @@ definitions:
         additionalProperties:
           type: string
         type: object
+      problemStats:
+        allOf:
+        - $ref: '#/definitions/dto.ProblemStatsResponse'
+        description: problem 域未装配时缺省
       satisfaction:
         items:
           $ref: '#/definitions/service.SatisfactionData'
@@ -8964,6 +9040,25 @@ paths:
       summary: 获取导出任务状态
       tags:
       - CMDB
+  /api/v1/cmdb/export/{task_id}/download:
+    get:
+      description: 按任务ID下载导出文件；校验租户、操作人归属与 expires_at
+      parameters:
+      - description: 任务ID
+        in: path
+        name: task_id
+        required: true
+        type: string
+      produces:
+      - application/octet-stream
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: file
+      summary: 下载CMDB导出文件
+      tags:
+      - CMDB
   /api/v1/cmdb/import:
     get:
       consumes:
@@ -9635,16 +9730,19 @@ paths:
     get:
       consumes:
       - application/json
-      description: 获取各服务的SLA达成情况
+      description: |-
+        获取租户近30天的SLA合规快照。响应是**单个对象**（complianceRate /
+        responseTimeCompliance / resolutionTimeCompliance / atRiskTickets /
+        breachedTickets / totalTickets / compliantTickets），不是按服务拆分的数组——
+        早期文档写成 {array} SLAData，前端据此定义 SLAData[] 并用 Array.isArray 过滤，
+        于是对象被当成"没有数据"，SLA 面板长期显示"暂无数据"。
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            items:
-              $ref: '#/definitions/handlers.SLAData'
-            type: array
+            $ref: '#/definitions/service.SLAComplianceData'
         "500":
           description: Internal Server Error
           schema:

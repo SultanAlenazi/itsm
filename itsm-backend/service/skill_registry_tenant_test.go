@@ -40,6 +40,7 @@ func (s *scopedTestSkill) GetMetrics() SkillMetrics { return SkillMetrics{} }
 func (s *scopedTestSkill) Validate(_ interface{}) error {
 	return nil
 }
+
 func (s *scopedTestSkill) Execute(_ context.Context, _ interface{}) (interface{}, error) {
 	s.calls++
 	return nil, nil

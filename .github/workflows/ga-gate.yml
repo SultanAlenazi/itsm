@@ -31,7 +31,8 @@ concurrency:
 jobs:
   ga-approved:
     name: GA Gate · Approved
-    runs-on: ubuntu-latest
+    # Keep the browser gate on an OS supported by the pinned Playwright version.
+    runs-on: ubuntu-24.04
     timeout-minutes: 35
     env:
       DEPLOYMENT_MODE: private
